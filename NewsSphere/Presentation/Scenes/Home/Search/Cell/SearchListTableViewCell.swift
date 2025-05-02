@@ -1,0 +1,82 @@
+//
+//  SearchListTableViewCell.swift
+//  NewsSphere
+//
+//  Created by DUONG DONG QUAN on 12/3/25.
+//
+import UIKit
+import Stevia
+
+protocol SearchListTableViewCellDelegate: AnyObject {
+    func didTapOptionButton(in cell: SearchListTableViewCell)
+}
+class SearchListTableViewCell: UITableViewCell {
+    static let identifier = "SearchListTableViewCell"
+    weak var delegate: SearchListTableViewCellDelegate?
+    private lazy var iconSearch = UIImageView()
+    public lazy var nameSearch = UILabel()
+    private lazy var deleteButton = UIButton()
+    public var keyword: String?
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setUpUI()
+        setupConstraints()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    func configure(with keyword: String) {
+        nameSearch.text = keyword
+        self.keyword = keyword
+    }
+    
+    @objc private func deleteTapped() {
+        delegate?.didTapOptionButton(in: self)
+    }
+}
+
+extension SearchListTableViewCell {
+    private func setUpUI() {
+        backgroundColor = .clear 
+        selectionStyle = .none
+        
+        iconSearch.style {
+            $0.image = UIImage(named: "ic_search")
+            $0.contentMode = .scaleAspectFit
+        }
+        
+        nameSearch.style {
+            $0.textColor = .white
+            $0.font = .systemFont(ofSize: 14, weight: .regular)
+            $0.numberOfLines = 1
+            $0.lineBreakMode = .byTruncatingTail
+            $0.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            $0.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        }
+        
+        deleteButton.style {
+            $0.setImage(UIImage(named: "ic_delete"), for: .normal)
+            $0.tintColor = .gray
+            $0.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
+        }
+        
+        contentView.subviews {
+            iconSearch
+            nameSearch
+            deleteButton
+        }
+    }
+    
+    private func setupConstraints() {
+        iconSearch.left(16).centerVertically().width(22).height(22)
+        deleteButton.right(16).centerVertically().width(18).height(18)
+        
+        nameSearch.centerVertically()
+        nameSearch.Left == iconSearch.Right + 12
+        nameSearch.Right == deleteButton.Left - 12
+    }
+    
+}
