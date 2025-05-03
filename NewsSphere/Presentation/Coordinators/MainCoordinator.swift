@@ -61,15 +61,6 @@ class MainCoordinator: Coordinator {
         self.discoveryCoordinator = discoveryCoordinator
         discoveryCoordinator.start()
         
-        // Create NoticeViewController with coordinator
-        let noticeVC = NoticeViewController()
-        let noticeCoordinator = NoticeCoordinator(navigationController: navigationController)
-        noticeVC.coordinator = noticeCoordinator
-        noticeCoordinator.parentCoordinator = self
-        addChildCoordinator(noticeCoordinator)
-        self.noticeCoordinator = noticeCoordinator
-        noticeCoordinator.start()
-        
         // Create ProfileViewController with coordinator
         let profileVC = ProfileViewController()
         let profileCoordinator = ProfileCoordinator(navigationController: navigationController)
@@ -79,7 +70,7 @@ class MainCoordinator: Coordinator {
         self.profileCoordinator = profileCoordinator
         profileCoordinator.start()
         
-        return [homeVC, discoveryVC, noticeVC, profileVC]
+        return [homeVC, discoveryVC, profileVC]
     }
     
     func showArticleDetail(_ article: Article, category: String? = nil) {

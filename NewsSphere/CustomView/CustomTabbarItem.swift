@@ -10,7 +10,6 @@ import UIKit
 enum TabType: String, CaseIterable {
     case home
     case discovery
-    case notice
     case profile
     
     func title() -> String {
