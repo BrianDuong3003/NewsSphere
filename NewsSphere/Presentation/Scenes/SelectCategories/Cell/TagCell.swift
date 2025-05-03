@@ -8,28 +8,34 @@ import UIKit
 import Stevia
 
 class TagCell: UICollectionViewCell {
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 15, weight: .semibold)
-        label.textColor = .white
-        return label
-    }()
+    private lazy var titleLabel = UILabel()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupViews()
+        setupView()
+        setupStyle()
+        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setupViews() {
+    private func setupView() {
+        contentView.subviews {
+            titleLabel
+        }
+    }
+    
+    private func setupStyle() {
         contentView.backgroundColor = UIColor(named: "hex_B1B1B1")
         contentView.layer.cornerRadius = 5
         
-        contentView.subviews(titleLabel)
-        
+        titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        titleLabel.textColor = .white
+    }
+    
+    private func setupConstraints() {
         contentView.layout(
             12,
             |-12-titleLabel-12-|,

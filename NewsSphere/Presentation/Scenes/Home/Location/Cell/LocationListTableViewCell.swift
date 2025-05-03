@@ -9,7 +9,8 @@ class LocationListTableViewCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setUpUI()
+        setupView()
+        setupStyle()
         setupConstraints()
     }
     
@@ -19,30 +20,26 @@ class LocationListTableViewCell: UITableViewCell {
 }
 
 extension LocationListTableViewCell {
-    private func setUpUI() {
-        backgroundColor = .clear 
-        selectionStyle = .none
-        
-        iconLocation.style {
-            $0.image = UIImage(named: "ic_location")
-            $0.contentMode = .scaleAspectFit
-        }
-        
-        nameLocation.style {
-            $0.textColor = .white
-            $0.font = .systemFont(ofSize: 18, weight: .regular)
-        }
-        
-        primaryLocation.style {
-            $0.textColor = .white
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-        }
-        
+    private func setupView() {
         contentView.subviews {
             iconLocation
             nameLocation
             primaryLocation
         }
+    }
+    
+    private func setupStyle() {
+        backgroundColor = .clear 
+        selectionStyle = .none
+        
+        iconLocation.image = UIImage(named: "ic_location")
+        iconLocation.contentMode = .scaleAspectFit
+        
+        nameLocation.textColor = .white
+        nameLocation.font = .systemFont(ofSize: 18, weight: .regular)
+        
+        primaryLocation.textColor = .white
+        primaryLocation.font = .systemFont(ofSize: 14, weight: .regular)
     }
     
     private func setupConstraints() {
@@ -56,5 +53,4 @@ extension LocationListTableViewCell {
         primaryLocation.Left == nameLocation.Left
         primaryLocation.right(16)
     }
-    
 }

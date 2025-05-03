@@ -12,7 +12,8 @@ class BookmarkViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        setupView()
+        setupStyle()
         setupConstraints()
         bindViewModel()
     }
@@ -32,47 +33,48 @@ class BookmarkViewController: UIViewController {
     @objc private func backButtonTapped() {
         viewModel.navigateBack()
     }
-    
 }
+
 extension BookmarkViewController {
-    private func setupUI() {
-        
-        topView.style {
-            $0.backgroundColor = UIColor(.hexRed)
-        }
-        backButton.style {
-            $0.setImage(UIImage(named: "ic_back_button"), for: .normal)
-            $0.tintColor = .white
-            $0.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        }
-        titleLabel.style {
-            $0.text = "Bookmark"
-            $0.font = .systemFont(ofSize: 24, weight: .bold)
-            $0.textColor = .white
-        }
-        
-        tableView.style {
-            $0.backgroundColor = UIColor(.hexBackGround)
-            $0.delegate = self
-            $0.dataSource = self
-            $0.estimatedRowHeight = 100
-            $0.rowHeight = UITableView.automaticDimension
-            $0.register(BookmarkTableViewCell.self,
-                        forCellReuseIdentifier: BookmarkTableViewCell.identifier)
+    private func setupView() {
+        view.subviews {
+            topView
+            backButton
+            titleLabel
+            tableView
         }
     }
     
-    private func setupConstraints() {
-        view.subviews(
-            topView, backButton, titleLabel, tableView
-        )
+    private func setupStyle() {
+        view.backgroundColor = UIColor.hexBackGround
         
+        topView.backgroundColor = UIColor(.hexRed)
+        
+        backButton.setImage(UIImage(named: "ic_back_button"), for: .normal)
+        backButton.tintColor = .white
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        
+        titleLabel.text = "Bookmark"
+        titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        titleLabel.textColor = .white
+        
+        tableView.backgroundColor = UIColor(.hexBackGround)
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.estimatedRowHeight = 100
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.register(BookmarkTableViewCell.self,
+                      forCellReuseIdentifier: BookmarkTableViewCell.identifier)
+    }
+    
+    private func setupConstraints() {
         topView.top(0).leading(0).trailing(0)
+        backButton.width(24).height(24)
+        
         topView.Height == view.Height * 0.15
         
         backButton.Leading == topView.Leading + 16
         backButton.Bottom == topView.Bottom - 12
-        backButton.width(24).height(24)
         
         titleLabel.CenterX == topView.CenterX
         titleLabel.CenterY == backButton.CenterY
@@ -83,6 +85,7 @@ extension BookmarkViewController {
         tableView.Bottom == view.Bottom
     }
 }
+
 // MARK: - UITableViewDelegate, UITableViewDataSource
 extension BookmarkViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -112,5 +115,4 @@ extension BookmarkViewController: UITableViewDelegate, UITableViewDataSource {
         tableView.deselectRow(at: indexPath, animated: true)
         viewModel.navigateToArticleDetail(at: indexPath.row)
     }
-    
 }

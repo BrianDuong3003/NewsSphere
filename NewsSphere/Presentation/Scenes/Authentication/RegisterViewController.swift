@@ -33,11 +33,12 @@ class RegisterViewController: UIViewController {
     let havedButton = UIButton()
     
     override func viewDidLoad() {
-        view.backgroundColor = .systemBackground
         super.viewDidLoad()
-        setupUI()
+        setupView()
+        setupStyle()
+        setupConstraints()
+        setupActions()
         setupBindings()
-        
     }
     
     func setupBindings() {
@@ -49,12 +50,22 @@ class RegisterViewController: UIViewController {
         
         viewModel.onRegisterSuccess = { [weak self] in
             let alert = UIAlertController(title: "Success",
-                                          message: "Registration successful!", preferredStyle: .alert)
+                                          message: "Registration successful!",
+                                          preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
                 self?.navigationController?.popViewController(animated: true)
             }))
             self?.present(alert, animated: true)
         }
+    }
+    
+    private func setupActions() {
+        let tapGesture = UITapGestureRecognizer(target: self,
+                                                action: #selector(togglePasswordVisibility))
+        hideImageView.isUserInteractionEnabled = true
+        hideImageView.addGestureRecognizer(tapGesture)
+        registerButton.addTarget(self, action: #selector(registerAccount), for: .touchUpInside)
+        havedButton.addTarget(self, action: #selector(havedAccount), for: .touchUpInside)
     }
     
     @objc func registerAccount() {
@@ -69,17 +80,15 @@ class RegisterViewController: UIViewController {
     @objc func havedAccount() {
         navigationController?.popViewController(animated: true)
     }
-    func setupUI() {
+    
+    @objc func togglePasswordVisibility() {
+        passwordTextField.isSecureTextEntry.toggle()
+    }
+    
+    private func setupView() {
         navigationItem.hidesBackButton = true
-        // add actions
-        let tapGesture = UITapGestureRecognizer(target: self,
-                                                action: #selector(togglePasswordVisibility))
-        hideImageView.isUserInteractionEnabled = true
-        hideImageView.addGestureRecognizer(tapGesture)
-        registerButton.addTarget(self, action: #selector(registerAccount), for: .touchUpInside)
-        havedButton.addTarget(self, action: #selector(havedAccount), for: .touchUpInside)
         
-        // stackview
+        // Setup the hideStackView
         hideStackView.axis = .horizontal
         hideStackView.distribution = .fill
         hideStackView.alignment = .center
@@ -87,21 +96,68 @@ class RegisterViewController: UIViewController {
         hideStackView.addArrangedSubview(hideImageView)
         hideStackView.addArrangedSubview(hideLabel)
         
-        // add subviews
-        view.subviews(
-            titleLabel,
-            emailTextField,
-            passwordTextField,
-            hideStackView,
-            firstNameTextField,
-            lastNameTextField,
-            policyLabel,
-            registerButton,
+        // Add subviews using block syntax
+        view.subviews {
+            titleLabel
+            emailTextField
+            passwordTextField
+            hideStackView
+            firstNameTextField
+            lastNameTextField
+            policyLabel
+            registerButton
             havedButton
-        )
-        // layout
-        titleLabel.top(10%)
-        titleLabel.centerHorizontally()
+        }
+    }
+    
+    private func setupStyle() {
+        view.backgroundColor = .hexBackGround
+        
+        titleLabel.font = .systemFont(ofSize: 25, weight: .semibold)
+        titleLabel.textColor = .label
+        titleLabel.text = "Register"
+        
+        applyTextFieldStyle(emailTextField, placeholder: "Email")
+        applyTextFieldStyle(passwordTextField, placeholder: "Password")
+        passwordTextField.isSecureTextEntry = true
+        
+        hideImageView.image = UIImage(named: "hideImage")
+        hideImageView.frame.size = CGSize(width: 40, height: 40)
+        hideImageView.contentMode = .scaleAspectFill
+        
+        hideLabel.text = "Hide password"
+        hideLabel.textColor = .hexGrey
+        hideLabel.font = .systemFont(ofSize: 18, weight: .medium)
+        
+        applyTextFieldStyle(firstNameTextField, placeholder: "First name")
+        applyTextFieldStyle(lastNameTextField, placeholder: "Last name")
+        
+        policyLabel.text = """
+        By registering and using this application, you agree and acknowledge that you understand the \
+        End-User License Agreement (EULA) & Privacy Policy. Click here to see detail.
+        """
+        policyLabel.textColor = .red
+        policyLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        policyLabel.numberOfLines = 0
+        policyLabel.lineBreakMode = .byWordWrapping
+        
+        registerButton.setTitle("Register", for: .normal)
+        registerButton.setTitleColor(.label, for: .normal)
+        registerButton.setGradientColors(startColor: .hexBrown,
+                                         endColor: .hexDarkRed)
+        registerButton.setGradientDirection(startPoint: CGPoint(x: 0, y: 0.5),
+                                            endPoint: CGPoint(x: 1, y: 0.5))
+        registerButton.layer.cornerRadius = 10
+        registerButton.clipsToBounds = true
+        
+        havedButton.setTitle("Already have an account? Login", for: .normal)
+        havedButton.setTitleColor(.label, for: .normal)
+        havedButton.backgroundColor = .hexDarkGrey
+        havedButton.layer.cornerRadius = 10
+    }
+    
+    private func setupConstraints() {
+        titleLabel.top(10%).centerHorizontally()
         
         emailTextField.Top == titleLabel.Bottom + 58
         emailTextField.Leading == view.Leading + 13
@@ -139,78 +195,16 @@ class RegisterViewController: UIViewController {
         havedButton.Leading == view.Leading + 13
         havedButton.Trailing == view.Trailing - 13
         havedButton.height(7%)
-        
-        // style and content
-        titleLabel.font = .systemFont(ofSize: 25, weight: .semibold)
-        titleLabel.textColor = .label
-        titleLabel.text = "Register"
-        
-        emailTextField.style(textFieldStyle)
-        emailTextField.attributedPlaceholder = NSAttributedString(
-            string: "Email",
-            attributes: [NSAttributedString.Key.foregroundColor: UIColor(.hexDarkText)]
-        )
-        emailTextField.textColor = .hexDarkText
-        emailTextField.backgroundColor = .hexDarkGrey
-        passwordTextField.style(textFieldStyle)
-        passwordTextField.attributedPlaceholder = NSAttributedString(
-            string: "Password",
-            attributes: [NSAttributedString.Key.foregroundColor: UIColor(.hexDarkText)]
-        )
-        passwordTextField.textColor = .hexDarkText
-        passwordTextField.backgroundColor = .hexDarkGrey
-        
-        hideImageView.image = UIImage(named: "hideImage")
-        hideImageView.frame.size = CGSize(width: 40, height: 40)
-        hideImageView.contentMode = .scaleAspectFill
-        hideLabel.text = "Hide password"
-        hideLabel.textColor = .hexGrey
-        hideLabel.font = .systemFont(ofSize: 18, weight: .medium)
-        
-        firstNameTextField.style(textFieldStyle)
-        firstNameTextField.attributedPlaceholder = NSAttributedString(
-            string: "First name",
-            attributes: [NSAttributedString.Key.foregroundColor: UIColor(.hexDarkText)]
-        )
-        firstNameTextField.textColor = .hexDarkText
-        firstNameTextField.backgroundColor = .hexDarkGrey
-        
-        lastNameTextField.style(textFieldStyle)
-        lastNameTextField.attributedPlaceholder = NSAttributedString(
-            string: "Last name",
-            attributes: [NSAttributedString.Key.foregroundColor: UIColor(.hexDarkText)]
-        )
-        lastNameTextField.textColor = .hexDarkText
-        lastNameTextField.backgroundColor = .hexDarkGrey
-        
-        policyLabel.text = """
-        By registering and using this application, you agree and acknowledge that you understand the \
-        End-User License Agreement (EULA) & Privacy Policy. Click here to see detail.
-        """
-        policyLabel.textColor = .red
-        policyLabel.font = .systemFont(ofSize: 15, weight: .medium)
-        policyLabel.numberOfLines = 0
-        policyLabel.lineBreakMode = .byWordWrapping
-        
-        registerButton.setTitle("Register", for: .normal)
-        registerButton.setTitleColor(.label, for: .normal)
-        registerButton.setGradientColors(startColor: .hexBrown,
-                                         endColor: .hexDarkRed)
-        registerButton.setGradientDirection(startPoint: CGPoint(x: 0, y: 0.5),
-                                            endPoint: CGPoint(x: 1, y: 0.5))
-        registerButton.layer.cornerRadius = 10
-        registerButton.clipsToBounds = true
-        
-        havedButton.setTitle("Already have an account? Login", for: .normal)
-        havedButton.setTitleColor(.label, for: .normal)
-        havedButton.backgroundColor = .hexDarkGrey
-        havedButton.layer.cornerRadius = 10
     }
-    @objc func togglePasswordVisibility() {
-        passwordTextField.isSecureTextEntry.toggle()
-    }
-    func textFieldStyle(_ textField: UITextField) {
+    
+    private func applyTextFieldStyle(_ textField: UITextField, placeholder: String) {
+        textField.backgroundColor = .hexDarkGrey
+        textField.textColor = .hexDarkText
         textField.borderStyle = .roundedRect
         textField.font = UIFont.systemFont(ofSize: 18)
+        textField.attributedPlaceholder = NSAttributedString(
+            string: placeholder,
+            attributes: [NSAttributedString.Key.foregroundColor: UIColor(.hexDarkText)]
+        )
     }
 }

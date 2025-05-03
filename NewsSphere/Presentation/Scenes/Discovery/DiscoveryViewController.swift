@@ -12,8 +12,8 @@ class DiscoveryViewController: UIViewController {
     
     private lazy var viewModel = DiscoveryViewModel()
     
-    private lazy var mainTitleLB = UILabel()
-    private lazy var contentview = UIView()
+    private lazy var mainTitleLabel = UILabel()
+    private lazy var contentView = UIView()
     private lazy var searchBar = UISearchBar()
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -30,7 +30,9 @@ class DiscoveryViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        config()
+        setupView()
+        setupStyle()
+        setupConstraints()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -40,12 +42,6 @@ class DiscoveryViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
-    
-    func config() {
-        setupViews()
-        setupConstraints()
-        styleViews()
-    }
 }
 
 // MARK: - Fetch Data
@@ -54,24 +50,22 @@ extension DiscoveryViewController {
 }
 
 extension DiscoveryViewController {
-    func setupViews() {
+    private func setupView() {
         view.subviews {
-            mainTitleLB
-            contentview
-        }
-        
-        contentview.subviews {
-            searchBar
-            collectionView
+            mainTitleLabel
+            contentView.subviews {
+                searchBar
+                collectionView
+            }
         }
     }
     
-    func setupConstraints() {
-        mainTitleLB
+    private func setupConstraints() {
+        mainTitleLabel
             .top(60)
             .centerHorizontally()
         
-        contentview
+        contentView
             .top(105)
             .left(0)
             .right(0)
@@ -80,9 +74,7 @@ extension DiscoveryViewController {
         searchBar
             .top(30)
             .left(15)
-            .right(16)
-            .height(60)
-            .centerHorizontally()
+            .right(16).height(60).centerHorizontally()
         
         collectionView
             .left(12)
@@ -92,42 +84,34 @@ extension DiscoveryViewController {
             .Top == searchBar.Bottom + 21
     }
     
-    func styleViews() {
-        view.backgroundColor = UIColor.C_01_D_2_E
+    private func setupStyle() {
+        view.backgroundColor = .hexBackGround
         
-        mainTitleLB.style {
-            $0.text = "Discovery"
-            $0.font = .systemFont(ofSize: 24, weight: .bold)
-            $0.textColor = .white
-            $0.textAlignment = .center
-        }
+        mainTitleLabel.text = "Discovery"
+        mainTitleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        mainTitleLabel.textColor = .white
+        mainTitleLabel.textAlignment = .center
         
-        contentview.style {
-            $0.backgroundColor = UIColor._1_B_1_B_1_B
-        }
+        contentView.backgroundColor = .hexBackGround
         
-        searchBar.style {
-            $0.barTintColor = ._1_B_1_B_1_B
-            $0.isTranslucent = false
-            $0.backgroundColor = .clear
-            $0.searchTextField.backgroundColor = .clear
-            $0.searchTextField.leftView?.tintColor = .B_9_B_9_B_6
-            $0.searchTextField.textColor = .B_9_B_9_B_6
-            $0.layer.borderWidth = 1
-            $0.layer.borderColor = UIColor.B_9_B_9_B_6.cgColor
-            $0.layer.cornerRadius = 16
-            $0.clipsToBounds = true
-            $0.placeholder = "Search"
-            $0.delegate = self
-        }
+        searchBar.barTintColor = .hexDarkGrey
+        searchBar.isTranslucent = false
+        searchBar.backgroundColor = .clear
+        searchBar.searchTextField.backgroundColor = .clear
+        searchBar.searchTextField.leftView?.tintColor = .hexBackGround
+        searchBar.searchTextField.textColor = .hexBackGround
+        searchBar.layer.borderWidth = 1
+        searchBar.layer.borderColor = UIColor.hexGrey.cgColor
+        searchBar.layer.cornerRadius = 16
+        searchBar.clipsToBounds = true
+        searchBar.placeholder = "Search"
+        searchBar.delegate = self
         
-        collectionView.style {
-            $0.backgroundColor = .clear
-            $0.delegate = self
-            $0.dataSource = self
-            $0.showsVerticalScrollIndicator = false
-            $0.register(DiscoveryCell.self, forCellWithReuseIdentifier: "DiscoveryCell")
-        }
+        collectionView.backgroundColor = .clear
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.register(DiscoveryCell.self, forCellWithReuseIdentifier: "DiscoveryCell")
     }
 }
 
@@ -153,8 +137,7 @@ extension DiscoveryViewController: UICollectionViewDelegate, UICollectionViewDat
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedCategory = categories[indexPath.item]
-        let categoryArticlesVC = CategoryArticlesViewController(category: selectedCategory.rawValue)
-        navigationController?.pushViewController(categoryArticlesVC, animated: true)
+        coordinator?.showArticles(for: selectedCategory.rawValue)
     }
     
     func collectionView(_ collectiornView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {

@@ -9,46 +9,47 @@ class LocationViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setUpUI()
+        setupView()
+        setupStyle()
         setupConstraints()
     }
 }
+
 extension LocationViewController {
-    private func setUpUI() {
-        view.backgroundColor = .hexBackGround
-        locationList.style {
-            $0.showsHorizontalScrollIndicator = false
-            $0.showsVerticalScrollIndicator = false
-            $0.backgroundColor = .hexBackGround
-            $0.separatorStyle = .none
-            $0.delegate = self
-            $0.dataSource = self
-            $0.estimatedRowHeight = 60
-            $0.rowHeight = UITableView.automaticDimension
-            $0.register(LocationListTableViewCell.self,
-                        forCellReuseIdentifier: LocationListTableViewCell.identifier)
-        }
-        textField.style {
-            $0.layer.cornerRadius = 10
-            $0.placeholder = "Location..."
-            $0.textAlignment = .left
-        }
-    }
-    private func setupConstraints() {
+    private func setupView() {
         view.subviews {
             textField
             locationList
         }
+    }
+    
+    private func setupStyle() {
+        view.backgroundColor = .hexBackGround
         
+        locationList.showsHorizontalScrollIndicator = false
+        locationList.showsVerticalScrollIndicator = false
+        locationList.backgroundColor = .hexBackGround
+        locationList.separatorStyle = .none
+        locationList.delegate = self
+        locationList.dataSource = self
+        locationList.estimatedRowHeight = 60
+        locationList.rowHeight = UITableView.automaticDimension
+        locationList.register(LocationListTableViewCell.self,
+                      forCellReuseIdentifier: LocationListTableViewCell.identifier)
+        
+        textField.layer.cornerRadius = 10
+        textField.placeholder = "Location..."
+        textField.textAlignment = .left
+    }
+    
+    private func setupConstraints() {
         textField.height(40).top(16).left(16).right(16)
-        
-        // Constraints cho tableView
         locationList.left(0).right(0).bottom(0)
         locationList.Top == textField.Bottom + 8
     }
-    
 }
-extension LocationViewController : UITableViewDelegate,UITableViewDataSource {
+
+extension LocationViewController : UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 0
     }
@@ -60,10 +61,6 @@ extension LocationViewController : UITableViewDelegate,UITableViewDataSource {
         ) as? LocationListTableViewCell else {
             return UITableViewCell()
         }
-        
-        // configure cell
-        
         return cell
     }
-    
 }

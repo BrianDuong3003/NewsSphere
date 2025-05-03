@@ -21,14 +21,14 @@ class DiscoveryCoordinator: Coordinator {
         
     }
     
-//    func showArticles(for category: String) {
-//        let categoryArticlesCoordinator = CategoryArticlesCoordinator(
-//            navigationController: navigationController,
-//            category: category
-//        )
-//        addChildCoordinator(categoryArticlesCoordinator)
-//        categoryArticlesCoordinator.start()
-//    }
+    func showArticles(for category: String) {
+        let categoryArticlesCoordinator = CategoryArticlesCoordinator(
+            navigationController: navigationController,
+            category: category
+        )
+        addChildCoordinator(categoryArticlesCoordinator)
+        categoryArticlesCoordinator.start()
+    }
     
     func didFinish() {
         parentCoordinator?.childDidFinish(self)

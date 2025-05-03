@@ -15,30 +15,39 @@ class WebViewContainer: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
+        setupStyle()
+        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupView()
+        setupStyle()
+        setupConstraints()
     }
     
     private func setupView() {
-        backgroundColor = UIColor.hexBackGround
-        
-        // Setup webView
         let config = WKWebViewConfiguration()
         webView = WKWebView(frame: bounds, configuration: config)
+        addSubview(webView)
+        addSubview(loadingIndicator)
+    }
+    
+    private func setupStyle() {
+        backgroundColor = UIColor.hexBackGround
+        
         webView.navigationDelegate = self
         webView.backgroundColor = UIColor.hexBackGround
         webView.contentMode = .scaleToFill
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(webView)
-                
-        // Setup loading indicator
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        
         loadingIndicator.color = .white
         loadingIndicator.hidesWhenStopped = true
         loadingIndicator.center = center
-        addSubview(loadingIndicator)        
+    }
+    
+    private func setupConstraints() {
         webView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             webView.topAnchor.constraint(equalTo: topAnchor),
@@ -46,7 +55,6 @@ class WebViewContainer: UIView {
             webView.leadingAnchor.constraint(equalTo: leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
-    
     }
     
     func loadURL(_ urlString: String) {

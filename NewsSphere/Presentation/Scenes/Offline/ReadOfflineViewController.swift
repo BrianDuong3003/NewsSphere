@@ -19,12 +19,14 @@ class ReadOfflineViewController: UIViewController {
     private lazy var emptyStateLabel = UILabel()
     
     var coordinator: HomeCoordinator?
-    var viewModel: ReadOfflineViewModel!
+    var viewModel: ReadOfflineViewModel
     
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.hidesBackButton = true
         setupView()
+        setupStyle()
+        setupConstraints()
         bindViewModel()
     }
     
@@ -38,9 +40,18 @@ class ReadOfflineViewController: UIViewController {
     }
     
     private func setupView() {
-        view.backgroundColor = UIColor.hexBackGround
-        setupUI()
-        setupContrainsts()
+        view.subviews {
+            topView.subviews {
+                backButton
+                titleLabel
+                reloadButton
+                deleteButton
+            }
+            
+            articlesTableView
+            loadingIndicator
+            emptyStateLabel
+        }
     }
     
     private func bindViewModel() {
@@ -130,73 +141,45 @@ class ReadOfflineViewController: UIViewController {
 
 // MARK: - Setup UI
 extension ReadOfflineViewController {
-    private func setupUI() {
-        topView.style {
-            $0.backgroundColor = UIColor.hexRed
-        }
+    private func setupStyle() {
+        view.backgroundColor = UIColor.hexBackGround
+        topView.backgroundColor = UIColor.hexRed
         
-        titleLabel.style {
-            $0.text = "Read offline"
-            $0.font = .systemFont(ofSize: 24, weight: .bold)
-            $0.textColor = .white
-        }
+        titleLabel.text = "Read offline"
+        titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        titleLabel.textColor = .white
         
-        backButton.style {
-            $0.setImage(UIImage(named: "ic_back_button"), for: .normal)
-            $0.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        }
+        backButton.setImage(UIImage(named: "ic_back_button"), for: .normal)
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         
-        reloadButton.style {
-            $0.setImage(UIImage(named: "ic_reload_button"), for: .normal)
-            $0.addTarget(self, action: #selector(reloadArticles), for: .touchUpInside)
-        }
+        reloadButton.setImage(UIImage(named: "ic_reload_button"), for: .normal)
+        reloadButton.addTarget(self, action: #selector(reloadArticles), for: .touchUpInside)
         
-        deleteButton.style {
-            $0.setImage(UIImage(named: "ic_trash_button"), for: .normal)
-            $0.addTarget(self, action: #selector(deleteArticles), for: .touchUpInside)
-        }
+        deleteButton.setImage(UIImage(named: "ic_trash_button"), for: .normal)
+        deleteButton.addTarget(self, action: #selector(deleteArticles), for: .touchUpInside)
         
-        articlesTableView.style {
-            $0.register(ReadOfflineTableViewCell.self,
-                        forCellReuseIdentifier: ReadOfflineTableViewCell.identifier)
-            $0.dataSource = self
-            $0.delegate = self
-            $0.estimatedRowHeight = 100
-            $0.rowHeight = UITableView.automaticDimension
-            $0.backgroundColor = .clear
-            $0.separatorStyle = .none
-        }
+        articlesTableView.register(ReadOfflineTableViewCell.self,
+                                   forCellReuseIdentifier: ReadOfflineTableViewCell.identifier)
+        articlesTableView.dataSource = self
+        articlesTableView.delegate = self
+        articlesTableView.estimatedRowHeight = 100
+        articlesTableView.rowHeight = UITableView.automaticDimension
+        articlesTableView.backgroundColor = .clear
+        articlesTableView.separatorStyle = .none
         
-        loadingIndicator.style {
-            $0.color = .white
-            $0.hidesWhenStopped = true
-        }
+        loadingIndicator.color = .white
+        loadingIndicator.hidesWhenStopped = true
         
-        emptyStateLabel.style {
-            $0.text = "No offline articles available.\nTap the reload button to download articles."
-            $0.font = .systemFont(ofSize: 16)
-            $0.textColor = .white
-            $0.textAlignment = .center
-            $0.numberOfLines = 0
-        }
+        emptyStateLabel.text = "No offline articles available.\nTap the reload button to download articles."
+        emptyStateLabel.font = .systemFont(ofSize: 16)
+        emptyStateLabel.textColor = .white
+        emptyStateLabel.textAlignment = .center
+        emptyStateLabel.numberOfLines = 0
         
         updateEmptyState()
     }
     
-    private func setupContrainsts() {
-        view.subviews {
-            topView.subviews {
-                backButton
-                titleLabel
-                reloadButton
-                deleteButton
-            }
-            
-            articlesTableView
-            loadingIndicator
-            emptyStateLabel
-        }
-        
+    private func setupConstraints() {
         topView.top(0).leading(0).trailing(0)
         topView.Height == view.Height * 0.15
         

@@ -1,5 +1,5 @@
 //
-//  PoliticsViewController.swift
+//  CategoryArticlesViewController.swift
 //  NewsSphere
 //
 //  Created by DUONG DONG QUAN on 7/4/25.
@@ -10,8 +10,8 @@ import Stevia
 
 class CategoryArticlesViewController: UIViewController {
     
-    private lazy var mainTitleLB = UILabel()
-    private lazy var contentview = UIView()
+    private lazy var mainTitleLabel = UILabel()
+    private lazy var contentView = UIView()
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 12
@@ -35,14 +35,11 @@ class CategoryArticlesViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        config()
-        fetchArticles()
-    }
-    
-    func config() {
-        setupViews()
+        setupView()
         setupConstraints()
-        styleViews()
+        setupStyle()
+        
+        fetchArticles()
     }
 }
 
@@ -57,58 +54,37 @@ extension CategoryArticlesViewController {
 }
 
 extension CategoryArticlesViewController {
-    func setupViews() {
+    private func setupView() {
         view.subviews {
-            mainTitleLB
-            contentview
-        }
-        
-        contentview.subviews {
-            collectionView
+            mainTitleLabel
+            contentView.subviews {
+                collectionView
+            }
         }
     }
     
-    func setupConstraints() {
-        mainTitleLB
-            .top(60)
-            .centerHorizontally()
-        
-        contentview
-            .top(105)
-            .left(0)
-            .right(0)
-            .bottom(0)
-        
-        collectionView
-            .left(12)
-            .right(12)
-            .bottom(0)
-            .height(>=200)
-            .top(60)
+    private func setupConstraints() {
+        mainTitleLabel.top(60).centerHorizontally()
+        contentView.top(105).left(0).right(0).bottom(0)
+        collectionView.left(12).right(12).bottom(0).height(>=200).top(60)
     }
     
-    func styleViews() {
-        view.backgroundColor = UIColor.C_01_D_2_E
+    private func setupStyle() {
+        view.backgroundColor = .hexRed
         
-        mainTitleLB.style {
-            $0.text = NewsCategoryType(rawValue: viewModel.category)?.displayName ?? viewModel.category.uppercased()
-            $0.font = .systemFont(ofSize: 24, weight: .bold)
-            $0.textColor = .white
-            $0.textAlignment = .center
-        }
+        mainTitleLabel.text =
+        NewsCategoryType(rawValue: viewModel.category)?.displayName ?? viewModel.category.uppercased()
+        mainTitleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        mainTitleLabel.textColor = .white
+        mainTitleLabel.textAlignment = .center
         
-        contentview.style {
-            $0.backgroundColor = UIColor._1_B_1_B_1_B
-        }
+        contentView.backgroundColor = .hexBackGround
         
-        collectionView.style {
-            $0.backgroundColor = .clear
-            $0.delegate = self
-            $0.dataSource = self
-            $0.showsVerticalScrollIndicator = false
-            $0.register(CategoryArticlesCell.self, forCellWithReuseIdentifier:
-                            "CategoryArticlesCell")
-        }
+        collectionView.backgroundColor = .clear
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.register(CategoryArticlesCell.self, forCellWithReuseIdentifier: "CategoryArticlesCell")
     }
 }
 

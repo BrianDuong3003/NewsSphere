@@ -10,88 +10,21 @@ import Stevia
 
 class SelectCategoriesViewController: UIViewController {
     
-    private let scrollView: UIScrollView = {
-        let scroll = UIScrollView()
-        scroll.showsVerticalScrollIndicator = false
-        return scroll
-    }()
-    
+    private lazy var scrollView = UIScrollView()
     private let contentView = UIView()
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Select favorite categories"
-        label.textColor = .white
-        label.font = .systemFont(ofSize: 25, weight: .bold)
-        return label
-    }()
-    
-    private let descLabel: UILabel = {
-        let label = UILabel()
-        label.text = "These categories will be used to personalized news for you"
-        label.textColor = .white
-        label.font = .systemFont(ofSize: 14, weight: .medium)
-        label.numberOfLines = 0
-        label.lineBreakMode = .byWordWrapping
-        return label
-    }()
-    
+    private lazy var titleLabel = UILabel()
+    private lazy var descLabel = UILabel()
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.estimatedItemSize = CGSize(width: 100, height: 40) // Add estimated size
+        layout.estimatedItemSize = CGSize(width: 100, height: 40)
         layout.minimumInteritemSpacing = 8
         layout.minimumLineSpacing = 8
-        
         let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collection.backgroundColor = .clear
-        collection.isScrollEnabled = false
-        collection.register(TagCell.self, forCellWithReuseIdentifier: "TagCell")
-        collection.delegate = self
-        collection.dataSource = self
-        collection.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         return collection
     }()
-    
-    private let loginRegisterButotnDescLabel: UILabel = {
-        let label = UILabel()
-        label.text = "You need to login to use this feature"
-        label.textColor = .white
-        label.font = .systemFont(ofSize: 18, weight: .bold)
-        label.numberOfLines = 0
-        label.lineBreakMode = .byWordWrapping
-        return label
-    }()
-    
-    private let navigateLoginRegisterButton: GradientButton = {
-        let button = GradientButton(type: .system)
-        
-        if let startColor = UIColor(named: "hex_C78055"),
-           let endColor = UIColor(named: "hex_A8273E") {
-            button.setGradientColors(startColor: startColor,
-                                     endColor: endColor)
-        }
-        
-        button.setGradientDirection(startPoint: CGPoint(x: 0, y: 0),
-                                    endPoint: CGPoint(x: 1, y: 0))
-        
-        button.setTitle("Login or Register", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 21, weight: .semibold)
-        button.layer.cornerRadius = 8
-        button.clipsToBounds = true
-        
-        return button
-    }()
-    
-    let skipButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Skip", for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 21, weight: .semibold)
-        button.setTitleColor(.black, for: .normal)
-        button.backgroundColor = UIColor(named: "hex_90_C3C3E5")
-        button.layer.cornerRadius = 8
-        return button
-    }()
+    private lazy var loginRegisterButotnDescLabel = UILabel()
+    private lazy var navigateLoginRegisterButton = GradientButton(type: .system)
+    private lazy var skipButton = UIButton(type: .system)
     
     private var collectionViewHeightConstraint: NSLayoutConstraint?
     
@@ -100,29 +33,91 @@ class SelectCategoriesViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupViews()
+        setupView()
+        setupStyle()
+        setupConstraints()
     }
     
-    private func setupViews() {
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        collectionView.collectionViewLayout.invalidateLayout()
+        updateCollectionViewHeight()
+    }
+    
+    private func updateCollectionViewHeight() {
+        collectionView.layoutIfNeeded()
+        let contentHeight = collectionView.contentSize.height
+        collectionViewHeightConstraint?.constant = contentHeight
+    }
+    
+    private func setupView() {
+        view.subviews {
+            scrollView.subviews {
+                contentView.subviews {
+                    titleLabel
+                    descLabel
+                    collectionView
+                    loginRegisterButotnDescLabel
+                    navigateLoginRegisterButton
+                    skipButton
+                }
+            }
+        }
+    }
+    
+    private func setupStyle() {
         view.backgroundColor = .black
         
-        view.subviews(
-            scrollView.subviews(
-                contentView
-            )
-        )
+        scrollView.showsVerticalScrollIndicator = false
         
+        titleLabel.text = "Select favorite categories"
+        titleLabel.textColor = .white
+        titleLabel.font = .systemFont(ofSize: 25, weight: .bold)
+        
+        descLabel.text = "These categories will be used to personalized news for you"
+        descLabel.textColor = .white
+        descLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        descLabel.numberOfLines = 0
+        descLabel.lineBreakMode = .byWordWrapping
+        
+        collectionView.backgroundColor = .clear
+        collectionView.isScrollEnabled = false
+        collectionView.register(TagCell.self, forCellWithReuseIdentifier: "TagCell")
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        
+        loginRegisterButotnDescLabel.text = "You need to login to use this feature"
+        loginRegisterButotnDescLabel.textColor = .white
+        loginRegisterButotnDescLabel.font = .systemFont(ofSize: 18, weight: .bold)
+        loginRegisterButotnDescLabel.numberOfLines = 0
+        loginRegisterButotnDescLabel.lineBreakMode = .byWordWrapping
+        
+        if let startColor = UIColor(named: "hex_C78055"),
+           let endColor = UIColor(named: "hex_A8273E") {
+            navigateLoginRegisterButton.setGradientColors(startColor: startColor,
+                                   endColor: endColor)
+        }
+        
+        navigateLoginRegisterButton.setGradientDirection(startPoint: CGPoint(x: 0, y: 0),
+                                  endPoint: CGPoint(x: 1, y: 0))
+        
+        navigateLoginRegisterButton.setTitle("Login or Register", for: .normal)
+        navigateLoginRegisterButton.setTitleColor(.white, for: .normal)
+        navigateLoginRegisterButton.titleLabel?.font = UIFont.systemFont(ofSize: 21, weight: .semibold)
+        navigateLoginRegisterButton.layer.cornerRadius = 8
+        navigateLoginRegisterButton.clipsToBounds = true
+        
+        skipButton.setTitle("Skip", for: .normal)
+        skipButton.titleLabel?.font = UIFont.systemFont(ofSize: 21, weight: .semibold)
+        skipButton.setTitleColor(.black, for: .normal)
+        skipButton.backgroundColor = .hexGrWhite
+        skipButton.layer.cornerRadius = 8
+    }
+    
+    private func setupConstraints() {
         scrollView.fillContainer(padding: 0)
         contentView.width(UIScreen.main.bounds.width)
-        
-        contentView.subviews(
-            titleLabel,
-            descLabel,
-            collectionView,
-            loginRegisterButotnDescLabel,
-            navigateLoginRegisterButton,
-            skipButton
-        )
         
         contentView.layout(
             26,
@@ -152,18 +147,6 @@ class SelectCategoriesViewController: UIViewController {
         collectionViewHeightConstraint = collectionView.heightAnchor
             .constraint(equalToConstant: 200)
         collectionViewHeightConstraint?.isActive = true
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        collectionView.collectionViewLayout.invalidateLayout()
-        updateCollectionViewHeight()
-    }
-    
-    private func updateCollectionViewHeight() {
-        collectionView.layoutIfNeeded()
-        let contentHeight = collectionView.contentSize.height
-        collectionViewHeightConstraint?.constant = contentHeight
     }
 }
 

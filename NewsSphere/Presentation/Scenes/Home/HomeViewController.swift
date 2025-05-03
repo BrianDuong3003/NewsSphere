@@ -8,14 +8,14 @@ import UIKit
 import Stevia
 
 class HomeViewController: UIViewController {
-    private lazy var img = UIImageView()
-    private lazy var btnLocation = UIButton()
-    private lazy var btnDownload = UIButton()
-    private lazy var btnSearch = UIButton()
-    private lazy var btnList = UIButton()
+    private lazy var logo = UIImageView()
+    private lazy var locationButton = UIButton()
+    private lazy var downloadButton = UIButton()
+    private lazy var searchButton = UIButton()
+    private lazy var listButton = UIButton()
     private lazy var topView = UIView()
     private lazy var topBar = TopBarView()
-    private lazy var headLabel = UILabel()
+    private lazy var headlineLabel = UILabel()
     private lazy var verticalCollectionView: UICollectionView = createCollectionView(
         scrollDirection: .vertical,
         cellType: VerticalViewCell.self,
@@ -38,8 +38,8 @@ class HomeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupViews()
-        styleViews()
+        setupView()
+        setupStyle()
         setupConstraints()
         setupCollectionViewDelegates()
         topBar.delegate = self
@@ -65,78 +65,65 @@ class HomeViewController: UIViewController {
 }
 
 extension HomeViewController {
-    private func setupViews() {
+    private func setupView() {
         view.subviews {
-            topView
+            topView.subviews {
+                logo
+                searchButton
+                downloadButton
+                locationButton
+            }
             topBar
-            btnList
-            headLabel
+            listButton
+            headlineLabel
             horizontalCollectionView
             verticalCollectionView
         }
-        
-        topView.subviews {
-            img
-            btnSearch
-            btnDownload
-            btnLocation
-        }
     }
     
-    private func styleViews() {
-//        view.backgroundColor = UIColor.hexBackGround
+    private func setupStyle() {
         view.backgroundColor = UIColor.hexBackGround
         
-        headLabel.style {
-            $0.text = "Headlines"
-            $0.font = .systemFont(ofSize: 24, weight: .bold)
-            $0.textAlignment = .left
-            $0.textColor = .white
+        headlineLabel.text = "Headlines"
+        headlineLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        headlineLabel.textAlignment = .left
+        headlineLabel.textColor = .white
+        
+        logo.image = UIImage(named: "Logo")
+        
+        locationButton.setTitle("New York City", for: .normal)
+        locationButton.setGradientText(startColor: .hexDarkRed, endColor: .hexBrown)
+        if let titleLabel = locationButton.titleLabel {
+            titleLabel.font = UIFont.systemFont(ofSize: 21, weight: .heavy)
         }
-        img.style {
-            $0.image = UIImage(named: "Logo")
-        }
-        btnLocation.style {
-            $0.setTitle("New York City", for: .normal)
-            $0.setGradientText(startColor: .hexDarkRed, endColor: .hexBrown)
-            if let titleLabel = $0.titleLabel {
-                titleLabel.font = UIFont.systemFont(ofSize: 21, weight: .heavy)
-            }
-            $0.setImage(UIImage(named: "Vector 5"), for: .normal)
-            
-            $0.contentHorizontalAlignment = .center
-            $0.semanticContentAttribute = .forceRightToLeft
-            $0.addTarget(self, action: #selector(locationButtonTapped), for: .touchUpInside)
-        }
-        btnDownload.style {
-            $0.setImage(UIImage(named: "vtdl"), for: .normal)
-            $0.addTarget(self, action: #selector(downloadButtonTapped), for: .touchUpInside)
-        }
-        btnSearch.style {
-            $0.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
-            $0.tintColor = .lightGray
-        }
-        btnList.style {
-            $0.setImage(UIImage(named: "list"), for: .normal)
-        }
+        locationButton.setImage(UIImage(named: "Vector 5"), for: .normal)
+        locationButton.contentHorizontalAlignment = .center
+        locationButton.semanticContentAttribute = .forceRightToLeft
+        locationButton.addTarget(self, action: #selector(locationButtonTapped), for: .touchUpInside)
+        
+        downloadButton.setImage(UIImage(named: "vtdl"), for: .normal)
+        downloadButton.addTarget(self, action: #selector(downloadButtonTapped), for: .touchUpInside)
+        
+        searchButton.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
+        searchButton.tintColor = .lightGray
+        
+        listButton.setImage(UIImage(named: "list"), for: .normal)
     }
     
     private func setupConstraints() {
-        topView
-            .topAnchor
-            .constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0)
-            .isActive = true
+//        topView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0).isActive = true
+        topView.Top == view.safeAreaLayoutGuide.Top
         
         topView.layout {
-            |-img - <=30-btnLocation - <=22-btnDownload - <=12-btnSearch-|
+            |-logo - <=30-locationButton - <=22-downloadButton - <=12-searchButton-|
         }
         
         view.layout {
             |-20-topView.height(55)-35-|
             -8
-            |-27-topBar.height(35).width(<=330)-btnList.width(20)-27-|
+            |-27-topBar.height(35).width(<=330)-listButton.width(20)-27-|
             12
-            |-15-headLabel.height(27)-|
+            |-15-headlineLabel.height(27)-|
             20
             |-15-horizontalCollectionView.height(175)-|
             10
@@ -144,7 +131,7 @@ extension HomeViewController {
             20
         }
         
-        img.height(56).width(56)
+        logo.height(56).width(56)
     }
     
     @objc private func locationButtonTapped() {
@@ -260,27 +247,6 @@ extension HomeViewController: HomeViewModelDelegate {
             coordinator.showArticleDetail(article, selectedCategory: selectedCategory)
         } else {
             print("Coordinator is nil, using fallback navigation.")
-            guard let navigationController = self.navigationController else {
-                print("Error: NavigationController is nil in fallback.")
-                return
-            }
-            
-            let repository: ArticleRepositoryProtocol = ArticleRepository()
-            let bookmarkRepository: BookmarkRepositoryProtocol = BookmarkRepository()
-            let detailCoordinator = ArticleDetailCoordinator(navigationController:
-                                                                navigationController,
-                                                             article: article,
-                                                             repository: repository,
-                                                             bookmarkRepository: bookmarkRepository)
-            let selectedCategory = viewModel.getCurrentCategory()
-            let detailViewModel = ArticleDetailViewModel(repository: repository,
-                                                         bookmarkRepository: bookmarkRepository,
-                                                         coordinator: detailCoordinator,
-                                                         article: article)
-            detailViewModel.selectedCategory = selectedCategory
-            let detailViewController = ArticleDetailViewController()
-            detailViewController.viewModel = detailViewModel
-            navigationController.pushViewController(detailViewController, animated: true)
         }
     }
 }

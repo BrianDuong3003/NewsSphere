@@ -39,6 +39,8 @@ class ArticleDetailViewController: UIViewController {
             fatalError("ViewModel must be set before viewDidLoad")
         }
         setupView()
+        setupStyle()
+        setupConstraints()
         bindViewModel()
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
@@ -54,8 +56,18 @@ class ArticleDetailViewController: UIViewController {
     }
     
     private func setupView() {
-        setupUI()
-        setupConstraints()
+        view.subviews {
+            headerView.subviews {
+                backButton
+                shareButton
+                textSizeButton
+                bookmarkButton
+            }
+            scrollView.subviews {
+                contentView
+            }
+            loadingIndicator
+        }
     }
     
     private func bindViewModel() {
@@ -88,53 +100,34 @@ class ArticleDetailViewController: UIViewController {
 
 // MARK: - Setup UI
 extension ArticleDetailViewController {
-    private func setupUI() {
+    private func setupStyle() {
         view.backgroundColor = UIColor.hexBackGround
         
-        headerView.style {
-            $0.backgroundColor = UIColor.hexRed
-        }
+        headerView.backgroundColor = UIColor.hexRed
         
-        backButton.style {
-            $0.setImage(UIImage(named: "ic_back_button"), for: .normal)
-            $0.tintColor = .white
-            $0.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        }
+        backButton.setImage(UIImage(named: "ic_back_button"), for: .normal)
+        backButton.tintColor = .white
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         
-        shareButton.style {
-            $0.setImage(UIImage(named: "share"), for: .normal)
-            $0.tintColor = UIColor.hexGrey
-            $0.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
-        }
+        shareButton.setImage(UIImage(named: "share"), for: .normal)
+        shareButton.tintColor = UIColor.hexGrey
+        shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
         
-        textSizeButton.style {
-            $0.setImage(UIImage(named: "textSize"), for: .normal)
-            $0.tintColor = .white
-            $0.addTarget(self, action: #selector(textSizeButtonTapped), for: .touchUpInside)
-        }
+        textSizeButton.setImage(UIImage(named: "textSize"), for: .normal)
+        textSizeButton.tintColor = .white
+        textSizeButton.addTarget(self, action: #selector(textSizeButtonTapped), for: .touchUpInside)
         
-        bookmarkButton.style {
-            $0.tintColor = .white
-            $0.addTarget(self, action: #selector(bookmarkButtonTapped), for: .touchUpInside)
-        }
+        bookmarkButton.tintColor = .white
+        bookmarkButton.addTarget(self, action: #selector(bookmarkButtonTapped), for: .touchUpInside)
 
         contentView.delegate = self
+        
+        scrollView.showsVerticalScrollIndicator = true
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.alwaysBounceVertical = true
     }
     
     private func setupConstraints() {
-        view.subviews {
-            headerView.subviews {
-                backButton
-                shareButton
-                textSizeButton
-                bookmarkButton
-            }
-            scrollView.subviews {
-                contentView
-            }
-            loadingIndicator
-        }
-        
         headerView.top(0).leading(0).trailing(0)
         headerView.Height == view.Height * 0.13
         
@@ -155,16 +148,12 @@ extension ArticleDetailViewController {
         shareButton.width(30).height(30)
         
         scrollView.Top == headerView.Bottom
-        scrollView.leading(0).trailing(0)
-        scrollView.bottom(0)
+        scrollView.leading(0).trailing(0).bottom(0)
         
         contentView.top(0).leading(0).trailing(0).bottom(0)
         contentView.Width == scrollView.Width
         
         loadingIndicator.centerInContainer()
-        scrollView.showsVerticalScrollIndicator = true
-        scrollView.showsHorizontalScrollIndicator = false
-        scrollView.alwaysBounceVertical = true
     }
     
     // MARK: - Action Handlers

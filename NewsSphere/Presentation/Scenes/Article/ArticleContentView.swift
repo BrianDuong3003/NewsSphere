@@ -33,16 +33,27 @@ class ArticleContentView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
+        setupStyle()
+        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupView()
+        setupStyle()
+        setupConstraints()
     }
     
     private func setupView() {
-        setupUI()
-        setupContrainsts()
+        subviews {
+            categoryLabel
+            titleLabel
+            articleImageView
+            descriptionLabel
+            contentLabel
+            sourceLabel
+            seeFullContentButton
+        }
     }
     
     // MARK: - Configuration
@@ -50,14 +61,11 @@ class ArticleContentView: UIView {
         categoryLabel.text = selectedCategory
         titleLabel.text = article.title
         
-        // Configure description
         descriptionLabel.isHidden = article.description?.isEmpty ?? true
         descriptionLabel.text = article.description
         
-        // Configure content
         configureContentLabel(with: article)
         
-        // Configure source
         if let sourceText = article.sourceName {
             sourceLabel.text = "Source: \(sourceText)"
             if let date = article.formattedDate() {
@@ -67,7 +75,6 @@ class ArticleContentView: UIView {
             sourceLabel.text = nil
         }
         
-        // Configure image
         configureImageView(with: article.imageUrl)
         
         // Force layout update
@@ -184,75 +191,50 @@ class ArticleContentView: UIView {
 
 // MARK: - Setup UI
 extension ArticleContentView {
-    private func setupUI() {
+    private func setupStyle() {
         backgroundColor = UIColor.hexBackGround
         
-        categoryLabel.style {
-            $0.text = "Phone"
-            $0.textColor = UIColor(named: "hex_Orange")
-            $0.font = .systemFont(ofSize: 18, weight: .semibold)
-        }
+        categoryLabel.text = "Phone"
+        categoryLabel.textColor = UIColor(named: "hex_Orange")
+        categoryLabel.font = .systemFont(ofSize: 18, weight: .semibold)
         
-        titleLabel.style {
-            $0.text = "Apple's foldable iPhone is expected to save a surprisingly declining market"
-            $0.textColor = .white
-            $0.font = .systemFont(ofSize: 25, weight: .bold)
-            $0.numberOfLines = 0
-            $0.lineBreakMode = .byWordWrapping
-        }
+        titleLabel.text = "Apple's foldable iPhone is expected to save a surprisingly declining market"
+        titleLabel.textColor = .white
+        titleLabel.font = .systemFont(ofSize: 25, weight: .bold)
+        titleLabel.numberOfLines = 0
+        titleLabel.lineBreakMode = .byWordWrapping
         
-        articleImageView.style {
-            $0.image = UIImage(named: "ic_example")
-            $0.contentMode = .scaleAspectFill
-            $0.clipsToBounds = true
-            $0.layer.cornerRadius = 8
-        }
+        articleImageView.image = UIImage(named: "ic_example")
+        articleImageView.contentMode = .scaleAspectFill
+        articleImageView.clipsToBounds = true
+        articleImageView.layer.cornerRadius = 8
         
-        descriptionLabel.style {
-            $0.text = "Apple's foldable iPhone"
-            $0.textColor = UIColor(named: "hex_Grey") ?? .lightGray
-            $0.font = .systemFont(ofSize: 16, weight: .medium)
-            $0.numberOfLines = 0
-            $0.lineBreakMode = .byWordWrapping
-        }
+        descriptionLabel.text = "Apple's foldable iPhone"
+        descriptionLabel.textColor = UIColor(named: "hex_Grey") ?? .lightGray
+        descriptionLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        descriptionLabel.numberOfLines = 0
+        descriptionLabel.lineBreakMode = .byWordWrapping
         
-        contentLabel.style {
-            $0.text = "Foldables are still in their early days"
-            $0.textColor = .white
-            $0.font = .systemFont(ofSize: 17)
-            $0.numberOfLines = 0
-            $0.lineBreakMode = .byWordWrapping
-        }
+        contentLabel.text = "Foldables are still in their early days"
+        contentLabel.textColor = .white
+        contentLabel.font = .systemFont(ofSize: 17)
+        contentLabel.numberOfLines = 0
+        contentLabel.lineBreakMode = .byWordWrapping
         
-        sourceLabel.style {
-            $0.text = "By Brian Duong"
-            $0.textColor = UIColor(named: "hex_Grey") ?? .lightGray
-            $0.font = .systemFont(ofSize: 14, weight: .medium)
-        }
+        sourceLabel.text = "By Brian Duong"
+        sourceLabel.textColor = UIColor(named: "hex_Grey") ?? .lightGray
+        sourceLabel.font = .systemFont(ofSize: 14, weight: .medium)
         
-        seeFullContentButton.style {
-            $0.setTitle("See Full Content", for: .normal)
-            $0.setTitleColor(.hexDarkText, for: .normal)
-            $0.backgroundColor = .hexSeefull
-            $0.layer.cornerRadius = 5
-            $0.clipsToBounds = true
-            $0.titleLabel?.font = .systemFont(ofSize: 12, weight: .medium)
-            $0.addTarget(self, action: #selector(seeFullContentTapped), for: .touchUpInside)
-        }
+        seeFullContentButton.setTitle("See Full Content", for: .normal)
+        seeFullContentButton.setTitleColor(.hexDarkText, for: .normal)
+        seeFullContentButton.backgroundColor = .hexSeefull
+        seeFullContentButton.layer.cornerRadius = 5
+        seeFullContentButton.clipsToBounds = true
+        seeFullContentButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .medium)
+        seeFullContentButton.addTarget(self, action: #selector(seeFullContentTapped), for: .touchUpInside)
     }
     
-    private func setupContrainsts() {
-        subviews {
-            categoryLabel
-            titleLabel
-            articleImageView
-            descriptionLabel
-            contentLabel
-            sourceLabel
-            seeFullContentButton
-        }
-        
-        // Content constraints
+    private func setupConstraints() {
         categoryLabel.Top == Top + 15
         categoryLabel.Leading == Leading + 16
         categoryLabel.Trailing == Trailing - 16
@@ -298,5 +280,4 @@ extension ArticleContentView {
         
         return button
     }
-    
 }

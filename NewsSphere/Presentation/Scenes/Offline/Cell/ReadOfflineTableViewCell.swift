@@ -21,15 +21,12 @@ class ReadOfflineTableViewCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupView()
+        setupStyle()
+        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupView() {
-        setupUI()
-        setupContrainsts()
     }
     
     // Configure cell with article data
@@ -49,38 +46,7 @@ class ReadOfflineTableViewCell: UITableViewCell {
 
 // MARK: - Setup UI
 extension ReadOfflineTableViewCell {
-    private func setupUI() {
-        articleTitle.style {
-            $0.font = .systemFont(ofSize: 15, weight: .medium)
-            $0.numberOfLines = 0
-            $0.textColor = .white
-        }
-        
-        articleImage.style {
-            $0.image = UIImage(named: "ic_example")
-            $0.contentMode = .scaleAspectFill
-            $0.clipsToBounds = true
-            $0.layer.cornerRadius = 5
-        }
-        
-        timeLabel.style {
-            $0.text = "15h"
-            $0.font = .systemFont(ofSize: 13, weight: .medium)
-            $0.textColor = UIColor.hexGrey
-        }
-        
-        sourceName.style {
-            $0.text = "ABC News"
-            $0.font = .systemFont(ofSize: 13, weight: .medium)
-            $0.textColor = UIColor.hexGrey
-        }
-        
-        indicatorView.style {
-            $0.backgroundColor = .lightGray
-        }
-    }
-    
-    private func setupContrainsts() {
+    private func setupView() {
         subviews {
             articleTitle
             articleImage
@@ -88,7 +54,32 @@ extension ReadOfflineTableViewCell {
             sourceName
             indicatorView
         }
+    }
+    
+    private func setupStyle() {
+        backgroundColor = .clear
         
+        articleTitle.font = .systemFont(ofSize: 15, weight: .medium)
+        articleTitle.numberOfLines = 0
+        articleTitle.textColor = .white
+        
+        articleImage.image = UIImage(named: "ic_example")
+        articleImage.contentMode = .scaleAspectFill
+        articleImage.clipsToBounds = true
+        articleImage.layer.cornerRadius = 5
+        
+        timeLabel.text = "15h"
+        timeLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        timeLabel.textColor = UIColor.hexGrey
+        
+        sourceName.text = "ABC News"
+        sourceName.font = .systemFont(ofSize: 13, weight: .medium)
+        sourceName.textColor = UIColor.hexGrey
+        
+        indicatorView.backgroundColor = .lightGray
+    }
+    
+    private func setupConstraints() {
         articleTitle.Top == contentView.Top + 5
         articleTitle.Leading == contentView.Leading + 10
         articleTitle.Trailing == articleImage.Leading - 5

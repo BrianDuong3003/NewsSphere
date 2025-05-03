@@ -10,6 +10,7 @@ import Stevia
 protocol SearchListTableViewCellDelegate: AnyObject {
     func didTapOptionButton(in cell: SearchListTableViewCell)
 }
+
 class SearchListTableViewCell: UITableViewCell {
     static let identifier = "SearchListTableViewCell"
     weak var delegate: SearchListTableViewCellDelegate?
@@ -20,7 +21,8 @@ class SearchListTableViewCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setUpUI()
+        setupView()
+        setupStyle()
         setupConstraints()
     }
     
@@ -39,35 +41,31 @@ class SearchListTableViewCell: UITableViewCell {
 }
 
 extension SearchListTableViewCell {
-    private func setUpUI() {
-        backgroundColor = .clear 
-        selectionStyle = .none
-        
-        iconSearch.style {
-            $0.image = UIImage(named: "ic_search")
-            $0.contentMode = .scaleAspectFit
-        }
-        
-        nameSearch.style {
-            $0.textColor = .white
-            $0.font = .systemFont(ofSize: 14, weight: .regular)
-            $0.numberOfLines = 1
-            $0.lineBreakMode = .byTruncatingTail
-            $0.setContentHuggingPriority(.defaultLow, for: .horizontal)
-            $0.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        }
-        
-        deleteButton.style {
-            $0.setImage(UIImage(named: "ic_delete"), for: .normal)
-            $0.tintColor = .gray
-            $0.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
-        }
-        
+    private func setupView() {
         contentView.subviews {
             iconSearch
             nameSearch
             deleteButton
         }
+    }
+    
+    private func setupStyle() {
+        backgroundColor = .clear 
+        selectionStyle = .none
+        
+        iconSearch.image = UIImage(named: "ic_search")
+        iconSearch.contentMode = .scaleAspectFit
+        
+        nameSearch.textColor = .white
+        nameSearch.font = .systemFont(ofSize: 14, weight: .regular)
+        nameSearch.numberOfLines = 1
+        nameSearch.lineBreakMode = .byTruncatingTail
+        nameSearch.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        nameSearch.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        
+        deleteButton.setImage(UIImage(named: "ic_delete"), for: .normal)
+        deleteButton.tintColor = .gray
+        deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
     }
     
     private func setupConstraints() {
@@ -78,5 +76,4 @@ extension SearchListTableViewCell {
         nameSearch.Left == iconSearch.Right + 12
         nameSearch.Right == deleteButton.Left - 12
     }
-    
 }

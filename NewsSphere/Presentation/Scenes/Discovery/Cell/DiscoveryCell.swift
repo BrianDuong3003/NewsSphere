@@ -16,17 +16,13 @@ class DiscoveryCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        config()
+        setupView()
+        setupStyle()
+        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    func config() {
-        setupViews()
-        setupConstraints()
-        styleViews()
     }
     
     func configure(with title: String, image: UIImage) {
@@ -36,7 +32,7 @@ class DiscoveryCell: UICollectionViewCell {
 }
 
 extension DiscoveryCell {
-    func setupViews() {
+    private func setupView() {
         subviews {
             imageView
             bgView
@@ -45,38 +41,27 @@ extension DiscoveryCell {
         }
     }
     
-    func setupConstraints() {
+    private func setupConstraints() {
         imageView.fillContainer()
-        
         bgView.fillContainer()
-        
         titleLabel.centerInContainer()
-        horizontalDivider
-            .left(15)
-            .right(15)
-            .height(1)
-            .Top == titleLabel.Bottom + 10
+        
+        horizontalDivider.left(15).right(15).height(1)
+        horizontalDivider.Top == titleLabel.Bottom + 10
     }
     
-    func styleViews() {
+    private func setupStyle() {
         roundCorners([.allCorners], radius: 10)
         
-        bgView.style {
-            $0.backgroundColor = .black.withAlphaComponent(0.1)
-        }
-        titleLabel.style {
-            $0.textColor = .white
-            $0.font = .systemFont(ofSize: 18, weight: .bold)
-        }
+        bgView.backgroundColor = .black.withAlphaComponent(0.1)
         
-        imageView.style {
-            $0.contentMode = .scaleAspectFill
-            $0.clipsToBounds = true
-            $0.backgroundColor = .gray
-        }
+        titleLabel.textColor = .white
+        titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
         
-        horizontalDivider.style {
-            $0.backgroundColor = .white
-        }
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.backgroundColor = .gray
+        
+        horizontalDivider.backgroundColor = .white
     }
 }

@@ -1,6 +1,7 @@
 import UIKit
 import Stevia
 import SDWebImage
+
 class BookmarkTableViewCell: UITableViewCell {
     static let identifier = "BookmarkTableViewCell"
     
@@ -16,7 +17,8 @@ class BookmarkTableViewCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
+        setupView()
+        setupStyle()
         setupConstraints()
     }
     
@@ -33,7 +35,6 @@ class BookmarkTableViewCell: UITableViewCell {
         } else {
             articleImage.image = UIImage(named: "rectangle7")
         }
-        
     }
     
     private func timeAgoString(from dateString: String) -> String {
@@ -49,63 +50,17 @@ class BookmarkTableViewCell: UITableViewCell {
         let components = Calendar.current.dateComponents([.minute, .hour, .day], from: date, to: now)
         
         if let day = components.day, day > 0 {
-            return "\(day * 24 + (components.hour ?? 0)) giờ trước"
+            return "\(day * 24 + (components.hour ?? 0)) hours ago"
         } else if let hour = components.hour, hour > 0 {
-            return "\(hour) giờ trước"
+            return "\(hour) hours ago"
         } else if let minute = components.minute, minute > 0 {
-            return "\(minute) phút trước"
+            return "\(minute) minutes ago"
         } else {
-            return "Vừa xong"
+            return "Just finished"
         }
     }
     
-    
-    private func setupUI() {
-        
-        articleTitle.style {
-            $0.text = """
-                    Trump suggests Canada become 51st state after Trudeau said tariff would kill economy: sources
-                    """
-            $0.font = .systemFont(ofSize: 15, weight: .medium)
-            $0.numberOfLines = 0
-            $0.textColor = .white
-        }
-        
-        articleImage.style {
-            $0.image = UIImage(named: "image")
-            $0.contentMode = .scaleAspectFill
-        }
-        
-        likeButton.style {
-            $0.setImage(UIImage(named: "ic_like"), for: .normal)
-            $0.setImage(UIImage(named: "ic_like_selected"), for: .selected)
-            $0.addTarget(self, action: #selector(likeButtonTapped), for: .touchUpInside)
-        }
-        
-        numberOfLike.style {
-            $0.text = "0"
-            $0.font = .systemFont(ofSize: 13, weight: .medium)
-            $0.textColor = .hexGrey
-        }
-        
-        timeLabel.style {
-            $0.text = "3h"
-            $0.font = .systemFont(ofSize: 13, weight: .medium)
-            $0.textColor = .hexGrey
-        }
-        
-        sourceName.style {
-            $0.text = "Fox News"
-            $0.font = .systemFont(ofSize: 13, weight: .medium)
-            $0.textColor = .hexGrey
-        }
-        
-        indicatorView.style {
-            $0.backgroundColor = .hexDarkGrey
-        }
-    }
-    
-    private func setupConstraints() {
+    private func setupView() {
         subviews {
             articleTitle
             articleImage
@@ -115,13 +70,47 @@ class BookmarkTableViewCell: UITableViewCell {
             sourceName
             indicatorView
         }
+    }
+    
+    private func setupStyle() {
+        backgroundColor = .clear
         
+        articleTitle.text = """
+                Trump suggests Canada become 51st state after Trudeau said tariff would kill economy: sources
+                """
+        articleTitle.font = .systemFont(ofSize: 15, weight: .medium)
+        articleTitle.numberOfLines = 0
+        articleTitle.textColor = .white
+        
+        articleImage.image = UIImage(named: "image")
+        articleImage.contentMode = .scaleAspectFill
+        articleImage.layer.cornerRadius = 8
+        articleImage.clipsToBounds = true
+        
+        likeButton.setImage(UIImage(named: "ic_like"), for: .normal)
+        likeButton.setImage(UIImage(named: "ic_like_selected"), for: .selected)
+        likeButton.addTarget(self, action: #selector(likeButtonTapped), for: .touchUpInside)
+        
+        numberOfLike.text = "0"
+        numberOfLike.font = .systemFont(ofSize: 13, weight: .medium)
+        numberOfLike.textColor = .hexGrey
+        
+        timeLabel.text = "3h"
+        timeLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        timeLabel.textColor = .hexGrey
+        
+        sourceName.text = "Fox News"
+        sourceName.font = .systemFont(ofSize: 13, weight: .medium)
+        sourceName.textColor = .hexGrey
+        
+        indicatorView.backgroundColor = .hexDarkGrey
+    }
+    
+    private func setupConstraints() {
         articleImage.Top == contentView.Top + 10
         articleImage.Trailing == contentView.Trailing - 10
         articleImage.Width == 120
         articleImage.Height == 80
-        articleImage.layer.cornerRadius = 8
-        articleImage.clipsToBounds = true
         
         articleTitle.Top == contentView.Top + 10
         articleTitle.Leading == contentView.Leading + 10

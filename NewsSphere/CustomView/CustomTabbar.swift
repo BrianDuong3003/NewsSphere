@@ -33,34 +33,32 @@ class CustomTabbar: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
+        setupStyle()
+        createTabItems()
+        selectTab(.home)
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupView()
-    }
-    
-    // MARK: - Setup
-    private func setupView() {
-        setupUI()
-        setupConstraints()
+        setupStyle()
         createTabItems()
         selectTab(.home)
     }
     
-    private func setupUI() {
+    // MARK: - Setup
+    private func setupView() {
+        subviews {
+            stackView
+        }
+        stackView.fillContainer()
+    }
+    
+    private func setupStyle() {
         backgroundColor = .black
         layer.cornerRadius = 20
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         clipsToBounds = true
-    }
-    
-    private func setupConstraints() {
-        subviews {
-            stackView
-        }
-        
-        stackView.fillContainer()
     }
     
     private func createTabItems() {

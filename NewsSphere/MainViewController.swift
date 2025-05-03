@@ -22,6 +22,8 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
+        setupStyle()
+        setupConstraints()
         showViewController(at: 0)
     }
     
@@ -41,13 +43,18 @@ class MainViewController: UIViewController {
     
     // MARK: - Setup
     private func setupView() {
-        view.backgroundColor = .black
-        
         view.subviews {
             contentView
             customTabbar
         }
-        
+    }
+    
+    private func setupStyle() {
+        view.backgroundColor = .black
+        customTabbar.delegate = self
+    }
+    
+    private func setupConstraints() {
         contentView.Top == view.Top
         contentView.Leading == view.Leading
         contentView.Trailing == view.Trailing
@@ -57,8 +64,6 @@ class MainViewController: UIViewController {
         customTabbar.Trailing == view.Trailing
         customTabbar.Bottom == view.safeAreaLayoutGuide.Bottom
         customTabbar.Height == 90
-        
-        customTabbar.delegate = self
     }
     
     private func showViewController(at index: Int) {

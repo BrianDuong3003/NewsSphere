@@ -4,7 +4,7 @@ import FirebaseAuth
 
 class LoginViewController: UIViewController {
     
-    // MARK: - Properties/
+    // MARK: - Properties
     private let viewModel = LoginViewModel()
     weak var coordinator: AuthCoordinator?
     
@@ -26,8 +26,9 @@ class LoginViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .hexBackGround
-        setupUI()
+        setupView()
+        setupStyle()
+        setupConstraints()
         setupActions()
         setupBindings()
     }
@@ -70,6 +71,7 @@ class LoginViewController: UIViewController {
             self.present(alert, animated: true)
         }
     }
+    
     // MARK: - Actions
     private func setupActions() {
         let tapGesture = UITapGestureRecognizer(target: self,
@@ -98,7 +100,6 @@ class LoginViewController: UIViewController {
     }
     
     @objc private func registerAccount() {
-        //        coordinator?.showRegister()
         navigationController?.pushViewController(RegisterViewController(), animated: true)
     }
     
@@ -159,11 +160,19 @@ class LoginViewController: UIViewController {
     }
     
     // MARK: - UI Setup
-    private func setupUI() {
+    private func setupView() {
         setupHideStack()
-        addSubviews()
-        setupLayout()
-        applyStyles()
+        
+        view.subviews {
+            titleLabel
+            emailTextField
+            passwordTextField
+            hideStackView
+            loginButton
+            registerButton
+            forgotPassButton
+            activityIndicator
+        }
     }
     
     private func setupHideStack() {
@@ -175,51 +184,9 @@ class LoginViewController: UIViewController {
         hideStackView.addArrangedSubview(hideLabel)
     }
     
-    private func addSubviews() {
-        view.subviews(
-            titleLabel,
-            emailTextField,
-            passwordTextField,
-            hideStackView,
-            loginButton,
-            registerButton,
-            forgotPassButton
-        )
-    }
-    
-    private func setupLayout() {
-        titleLabel.top(10%).centerHorizontally()
+    private func setupStyle() {
+        view.backgroundColor = .hexBackGround
         
-        emailTextField.Top == titleLabel.Bottom + 58
-        emailTextField.Leading == view.Leading + 13
-        emailTextField.Trailing == view.Trailing - 13
-        emailTextField.height(7%)
-        
-        passwordTextField.Top == emailTextField.Bottom + 24
-        passwordTextField.Leading == emailTextField.Leading
-        passwordTextField.Trailing == emailTextField.Trailing
-        passwordTextField.height(7%)
-        
-        hideStackView.Top == passwordTextField.Bottom + 24
-        hideStackView.Leading == emailTextField.Leading
-        
-        loginButton.Top == hideStackView.Bottom + 35
-        loginButton.Leading == emailTextField.Leading
-        loginButton.Trailing == emailTextField.Trailing
-        loginButton.height(7%)
-        
-        registerButton.Top == loginButton.Bottom + 20
-        registerButton.Leading == loginButton.Leading
-        registerButton.Trailing == loginButton.Trailing
-        registerButton.height(7%)
-        
-        forgotPassButton.Top == registerButton.Bottom + 20
-        forgotPassButton.Leading == loginButton.Leading
-        forgotPassButton.Trailing == loginButton.Trailing
-        forgotPassButton.height(7%)
-    }
-    
-    private func applyStyles() {
         titleLabel.text = "Login"
         titleLabel.font = .systemFont(ofSize: 25, weight: .semibold)
         titleLabel.textColor = .white
@@ -249,20 +216,58 @@ class LoginViewController: UIViewController {
             $0.setTitleColor(.label, for: .normal)
             $0.backgroundColor = .hexDarkGrey
             $0.layer.cornerRadius = 10
+            $0.clipsToBounds = true
         }
         
-        registerButton.setTitle("Register new account", for: .normal)
-        forgotPassButton.setTitle("Forgot password", for: .normal)
+        registerButton.setTitle("Register", for: .normal)
+        forgotPassButton.setTitle("Forgot Password?", for: .normal)
+        
+        activityIndicator.color = .white
+        activityIndicator.hidesWhenStopped = true
+    }
+    
+    private func setupConstraints() {
+        titleLabel.top(10%).centerHorizontally()
+        
+        emailTextField.Top == titleLabel.Bottom + 58
+        emailTextField.Leading == view.Leading + 13
+        emailTextField.Trailing == view.Trailing - 13
+        emailTextField.height(7%)
+        
+        passwordTextField.Top == emailTextField.Bottom + 24
+        passwordTextField.Leading == emailTextField.Leading
+        passwordTextField.Trailing == emailTextField.Trailing
+        passwordTextField.height(7%)
+        
+        hideStackView.Top == passwordTextField.Bottom + 24
+        hideStackView.Leading == emailTextField.Leading
+        
+        loginButton.Top == hideStackView.Bottom + 35
+        loginButton.Leading == emailTextField.Leading
+        loginButton.Trailing == emailTextField.Trailing
+        loginButton.height(7%)
+        
+        registerButton.Top == loginButton.Bottom + 20
+        registerButton.Leading == loginButton.Leading
+        registerButton.Trailing == loginButton.Trailing
+        registerButton.height(7%)
+        
+        forgotPassButton.Top == registerButton.Bottom + 20
+        forgotPassButton.Leading == loginButton.Leading
+        forgotPassButton.Trailing == loginButton.Trailing
+        forgotPassButton.height(7%)
+        
+        activityIndicator.centerInContainer()
     }
     
     private func applyTextFieldStyle(_ textField: UITextField, placeholder: String) {
-        textField.borderStyle = .roundedRect
-        textField.font = UIFont.systemFont(ofSize: 18)
+        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
+        textField.leftViewMode = .always
+        textField.backgroundColor = .white
+        textField.layer.cornerRadius = 10
         textField.attributedPlaceholder = NSAttributedString(
             string: placeholder,
-            attributes: [.foregroundColor: UIColor(.hexDarkText)]
+            attributes: [NSAttributedString.Key.foregroundColor: UIColor.gray]
         )
-        textField.textColor = UIColor(.hexDarkText)
-        textField.backgroundColor = .hexGrey
     }
 }
