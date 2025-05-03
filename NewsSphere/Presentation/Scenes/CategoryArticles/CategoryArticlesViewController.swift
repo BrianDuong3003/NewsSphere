@@ -12,6 +12,8 @@ class CategoryArticlesViewController: UIViewController {
     
     private lazy var mainTitleLabel = UILabel()
     private lazy var contentView = UIView()
+    private lazy var backButton = UIButton()
+    private lazy var topView = UIView() // Thêm topView giống ReadOfflineViewController
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 12
@@ -21,12 +23,13 @@ class CategoryArticlesViewController: UIViewController {
     }()
     
     weak var coordinator: CategoryArticlesCoordinator?
-    private var viewModel: CategoryArticlesViewModel
+    private var viewModel: CategoryArticlesViewModel!
     private var articles: [Article] = []
     
     init(category: String) {
-        self.viewModel = CategoryArticlesViewModel(category: category)
+        // Initialize ViewModel later in viewDidLoad after coordinator is set
         super.init(nibName: nil, bundle: nil)
+        self.viewModel = CategoryArticlesViewModel(category: category, coordinator: self)
     }
     
     required init?(coder: NSCoder) {
@@ -38,8 +41,11 @@ class CategoryArticlesViewController: UIViewController {
         setupView()
         setupConstraints()
         setupStyle()
-        
         fetchArticles()
+    }
+    
+    @objc private func backButtonTapped() {
+        coordinator?.navigateBack()
     }
 }
 
@@ -73,27 +79,54 @@ extension CategoryArticlesViewController {
 extension CategoryArticlesViewController {
     private func setupView() {
         view.subviews {
-            mainTitleLabel
+            topView.subviews {
+                backButton
+                mainTitleLabel
+            }
             contentView.subviews {
                 collectionView
             }
         }
+        
+        // Add target cho backButton
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
     }
     
     private func setupConstraints() {
-        mainTitleLabel.top(60).centerHorizontally()
-        contentView.top(105).left(0).right(0).bottom(0)
-        collectionView.left(12).right(12).bottom(0).height(>=200).top(60)
+        // Top view
+        topView.top(0).left(0).right(0)
+        topView.Height == view.Height * 0.15
+        
+        // Title
+        mainTitleLabel.centerHorizontally().CenterY == backButton.CenterY
+
+        // Back button - vị trí giống như trong read offline
+        backButton.Leading == view.Leading + 20
+        backButton.Bottom == topView.Bottom - 15
+        backButton.width(30).height(30)
+        
+        // Content view
+        contentView.Top == topView.Bottom
+        contentView.left(0).right(0).bottom(0)
+        
+        // Collection view
+        collectionView.left(12).right(12).bottom(0).top(10)
     }
     
     private func setupStyle() {
-        view.backgroundColor = .hexRed
+        
+        view.backgroundColor = .hexBackGround
+        topView.backgroundColor = .hexRed
         
         mainTitleLabel.text =
         NewsCategoryType(rawValue: viewModel.category)?.displayName ?? viewModel.category.uppercased()
         mainTitleLabel.font = .systemFont(ofSize: 24, weight: .bold)
         mainTitleLabel.textColor = .white
         mainTitleLabel.textAlignment = .center
+        
+        // Style cho backButton - giống như ReadOfflineViewController
+        backButton.setImage(UIImage(named: "ic_back_button"), for: .normal)
+        backButton.tintColor = .white
         
         contentView.backgroundColor = .hexBackGround
         
@@ -105,7 +138,7 @@ extension CategoryArticlesViewController {
     }
 }
 
-// MARK: - CollectionView Deledate, Datasource
+// MARK: - CollectionView Delegate, Datasource
 extension CategoryArticlesViewController: UICollectionViewDelegate, UICollectionViewDataSource,
                                           UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -123,6 +156,12 @@ extension CategoryArticlesViewController: UICollectionViewDelegate, UICollection
         return cell
     }
     
+    // Thêm xử lý khi người dùng bấm vào cell
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let selectedArticle = articles[indexPath.item]
+        coordinator?.showArticleDetail(selectedArticle)
+    }
+    
     func collectionView(_ collectiornView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 12
     }
@@ -134,5 +173,16 @@ extension CategoryArticlesViewController: UICollectionViewDelegate, UICollection
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width = collectionView.bounds.width
         return CGSize(width: width, height: 300)
+    }
+}
+
+// Mở rộng CategoryArticlesViewController để tuân thủ CategoryArticlesCoordinatorProtocol
+extension CategoryArticlesViewController: CategoryArticlesCoordinatorProtocol {
+    func navigateBack() {
+        coordinator?.navigateBack()
+    }
+    
+    func showArticleDetail(_ article: Article) {
+        coordinator?.showArticleDetail(article)
     }
 }

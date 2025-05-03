@@ -8,7 +8,13 @@
 import Foundation
 import UIKit
 
-class CategoryArticlesCoordinator: Coordinator {
+// Tạo protocol cho CategoryArticlesCoordinator
+protocol CategoryArticlesCoordinatorProtocol: AnyObject {
+    func navigateBack()
+    func showArticleDetail(_ article: Article)
+}
+
+class CategoryArticlesCoordinator: Coordinator, CategoryArticlesCoordinatorProtocol {
     var childCoordinators: [Coordinator] = []
     let navigationController: UINavigationController
     let category: String
@@ -22,5 +28,24 @@ class CategoryArticlesCoordinator: Coordinator {
         let categoryArticlesVC = CategoryArticlesViewController(category: category)
         categoryArticlesVC.coordinator = self
         navigationController.pushViewController(categoryArticlesVC, animated: true)
+    }
+    
+    // Thêm phương thức điều hướng đến màn hình chi tiết bài viết
+    func showArticleDetail(_ article: Article) {
+        let bookmarkRepository = BookmarkRepository()
+        let repository: ArticleRepositoryProtocol = ArticleRepository()
+        
+        let articleDetailCoordinator = ArticleDetailCoordinator(
+            navigationController: navigationController,
+            article: article,
+            repository: repository,
+            bookmarkRepository: bookmarkRepository
+        )
+        addChildCoordinator(articleDetailCoordinator)
+        articleDetailCoordinator.start()
+    }
+    
+    func navigateBack() {
+        navigationController.popViewController(animated: true)
     }
 }

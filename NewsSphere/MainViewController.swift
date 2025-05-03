@@ -62,7 +62,7 @@ class MainViewController: UIViewController {
         
         customTabbar.Leading == view.Leading
         customTabbar.Trailing == view.Trailing
-        customTabbar.Bottom == view.safeAreaLayoutGuide.Bottom
+        customTabbar.Bottom == view.Bottom
         customTabbar.Height == 90
     }
     

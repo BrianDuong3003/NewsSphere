@@ -1,5 +1,5 @@
 //
-//  ArticleDetailViewModel.swift
+//  CategoryArticlesViewModel.swift
 //  NewsSphere
 //
 //  Created by DUONG DONG QUAN on 6/3/25.
@@ -9,11 +9,13 @@ import Foundation
 
 class CategoryArticlesViewModel {
     private let categoryRepository = CategoryRepository()
+    private let coordinator: CategoryArticlesCoordinatorProtocol
     private var articles: [Article] = []
     let category: String
     
-    init(category: String) {
+    init(category: String, coordinator: CategoryArticlesCoordinatorProtocol) {
         self.category = category
+        self.coordinator = coordinator
     }
         
     func fetchArticles(completion: @escaping ([Article]) -> Void) {
@@ -34,6 +36,10 @@ class CategoryArticlesViewModel {
                 }
             }
         }
+    }
+    
+    func navigateBack() {
+        coordinator.navigateBack()
     }
     
     private func errorMessage(for error: NetworkError) -> String {
