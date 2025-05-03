@@ -137,7 +137,7 @@ extension DiscoveryViewController: UICollectionViewDelegate, UICollectionViewDat
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedCategory = categories[indexPath.item]
-        coordinator?.showArticles(for: selectedCategory.rawValue)
+        coordinator?.showArticles(for: selectedCategory.apiValue)
     }
     
     func collectionView(_ collectiornView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {

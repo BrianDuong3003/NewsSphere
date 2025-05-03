@@ -13,13 +13,7 @@ class CategoryArticlesCell: UICollectionViewCell {
     private lazy var sourceIcon = UIImageView()
     private lazy var sourceName = UILabel()
     private lazy var titleLabel = UILabel()
-    private lazy var bottomView = UIView()
-    private lazy var countLikeLB = UILabel()
-    private lazy var countCommentLB = UILabel()
-    private lazy var likeImage = UIImageView()
-    private lazy var commentImage = UIImageView()
     private lazy var categoryLB = UILabel()
-    private lazy var deleteButton = UIButton()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -31,6 +25,7 @@ class CategoryArticlesCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         sourceIcon.layer.cornerRadius = sourceIcon.frame.width / 2
+        sourceIcon.clipsToBounds = true
     }
     
     required init?(coder: NSCoder) {
@@ -41,9 +36,6 @@ class CategoryArticlesCell: UICollectionViewCell {
         titleLabel.text = article.title
         sourceName.text = article.sourceName
         categoryLB.text = article.category?.first?.capitalized ?? "Unknown"
-        
-        countLikeLB.text = "200"
-        countCommentLB.text = "2"
         
         if let imageUrl = article.imageUrl, let url = URL(string: imageUrl) {
             picture.sd_setImage(with: url, placeholderImage: UIImage(named: "placeholder_image"))
@@ -66,19 +58,17 @@ extension CategoryArticlesCell {
             sourceIcon
             sourceName
             titleLabel
-            bottomView.subviews {
-                countLikeLB
-                likeImage
-                countCommentLB
-                commentImage
-                categoryLB
-            }
+            categoryLB
         }
     }
     
     private func setupStyle() {
         picture.layer.cornerRadius = 8
         picture.clipsToBounds = true
+        picture.contentMode = .scaleAspectFill
+        
+        sourceIcon.contentMode = .scaleAspectFill
+        sourceIcon.backgroundColor = .lightGray
         
         sourceName.textColor = .hexGrey
         sourceName.font = .systemFont(ofSize: 14, weight: .regular)
@@ -87,45 +77,32 @@ extension CategoryArticlesCell {
         titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
         titleLabel.numberOfLines = 0
         
-        countLikeLB.text = "200"
-        countLikeLB.textColor = .gray
-        countLikeLB.font = .systemFont(ofSize: 12)
-        
-        countCommentLB.text = "2"
-        countCommentLB.textColor = .gray
-        countCommentLB.font = .systemFont(ofSize: 12)
-        
-        likeImage.image = .like
-        
-        commentImage.image = .comment
-        
-        categoryLB.textColor = .red
+        categoryLB.textColor = .hexOrange
         categoryLB.font = .systemFont(ofSize: 14, weight: .medium)
     }
     
     private func setupConstraints() {
-        picture.top(0).fillHorizontally().height(175)
-        sourceIcon.left(0).width(23).height(23)
-        bottomView.height(20).fillHorizontally()
-        countLikeLB.left(0).fillVertically()
-        likeImage.width(15).height(15)
-        commentImage.width(15).height(15)
+        picture.height(175)
+            .centerHorizontally()
+            .top(0)
         
-        sourceIcon.Top == picture.Bottom + 10
+        sourceIcon.left(8)
+            .width(28)
+            .height(28)
+            .Top == picture.Bottom + 10
         
-        sourceName.top(13)
-        sourceName.Left == sourceIcon.Right + 9
+        sourceName.left(44).right(12).centerVertically()
+        sourceName.height(15)
+            .Left == sourceIcon.Right + 8
+        align(horizontally: sourceIcon, sourceName)
         
-        titleLabel.fillHorizontally()
-        titleLabel.Top == sourceIcon.Bottom + 10
+        titleLabel.bottom(28)
+            .left(8)
+            .height(50)
+            .width(360)
+            .Top == sourceName.Bottom + 10
         
-        bottomView.Top == titleLabel.Bottom + 2
-        
-        likeImage.Left == countLikeLB.Right
-        
-        countCommentLB.Left == likeImage.Right + 2
-        commentImage.Left == countCommentLB.Right + 2
-        
-        categoryLB.Left == commentImage.Right + 20
+        categoryLB.left(8).right(12).bottom(12)
+        categoryLB.Top == titleLabel.Bottom + 6
     }
 }

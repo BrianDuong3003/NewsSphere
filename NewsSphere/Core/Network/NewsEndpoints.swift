@@ -14,8 +14,11 @@ enum NewsEndpoints {
         let path = "/latest"
         var params: [String: Any]
         
-        init(category: String? = nil, country: String? = nil, language: String = "en", query: String? = nil, size: Int = 20, page: Int? = nil) {
-            var parameters: [String: Any] = ["language": language]
+        init(category: String? = nil, country: String? = nil, language: String = "en", query: String? = nil, size: Int = 10, page: Int? = nil) {
+            var parameters: [String: Any] = [
+                "language": language,
+                "apikey": AppConstants.API.accessToken // Đảm bảo truyền đúng API key với tham số apikey viết thường
+            ]
             
             if let category = category {
                 parameters["category"] = category
@@ -29,10 +32,11 @@ enum NewsEndpoints {
                 parameters["q"] = query
             }
             
-            parameters["size"] = size
+            // Size = 10 đã được kiểm chứng hoạt động tốt với API
+            parameters["size"] = String(size)
             
             if let page = page {
-                parameters["page"] = page
+                parameters["page"] = String(page)
             }
             
             self.params = parameters
@@ -57,7 +61,7 @@ enum NewsEndpoints {
         let path = "/latest"
         var params: [String: Any]
         
-        init(cityName: String, country: String = "united states", language: String = "en", category: String? = nil, size: Int = 20, page: Int? = nil) {
+        init(cityName: String, country: String = "united states", language: String = "en", category: String? = nil, size: Int = 10, page: Int? = nil) {
             var parameters: [String: Any] = ["language": language]
             
             // Format city and country for region parameter
@@ -69,6 +73,7 @@ enum NewsEndpoints {
                 parameters["category"] = category
             }
             
+            // Size = 10 đã được kiểm chứng hoạt động tốt với API
             parameters["size"] = size
             
             if let page = page {
@@ -84,7 +89,7 @@ enum NewsEndpoints {
         let path = "/archive"
         var params: [String: Any]
         
-        init(query: String? = nil, fromDate: String? = nil, toDate: String? = nil, language: String = "en", country: String? = nil, category: String? = nil, size: Int = 20, page: Int? = nil) {
+        init(query: String? = nil, fromDate: String? = nil, toDate: String? = nil, language: String = "en", country: String? = nil, category: String? = nil, size: Int = 10, page: Int? = nil) {
             var parameters: [String: Any] = ["language": language]
             
             if let query = query {
@@ -107,6 +112,7 @@ enum NewsEndpoints {
                 parameters["category"] = category
             }
             
+            // Size = 10 đã được kiểm chứng hoạt động tốt với API
             parameters["size"] = size
             
             if let page = page {
@@ -122,7 +128,7 @@ enum NewsEndpoints {
         let path = "/latest"
         var params: [String: Any]
         
-        init(domain: String, query: String? = nil, language: String = "en", size: Int = 20, page: Int? = nil) {
+        init(domain: String, query: String? = nil, language: String = "en", size: Int = 10, page: Int? = nil) {
             var parameters: [String: Any] = ["language": language]
             
             parameters["domain"] = domain
@@ -131,6 +137,7 @@ enum NewsEndpoints {
                 parameters["q"] = query
             }
             
+            // Size = 10 đã được kiểm chứng hoạt động tốt với API
             parameters["size"] = size
             
             if let page = page {

@@ -18,7 +18,6 @@ class MainCoordinator: Coordinator {
     
     private var homeCoordinator: HomeCoordinator?
     private var discoveryCoordinator: DiscoveryCoordinator?
-    private var noticeCoordinator: NoticeCoordinator?
     private var profileCoordinator: ProfileCoordinator?
     private var mainViewController: MainViewController?
     
@@ -53,7 +52,7 @@ class MainCoordinator: Coordinator {
         homeCoordinator.start()
         
         // Create DiscoveryViewController with coordinator
-        let discoveryVC = DiscoveryViewController(viewModel: )
+        let discoveryVC = DiscoveryViewController()
         let discoveryCoordinator = DiscoveryCoordinator(navigationController: navigationController)
         discoveryVC.coordinator = discoveryCoordinator
         discoveryCoordinator.parentCoordinator = self
