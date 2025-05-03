@@ -53,7 +53,7 @@ class MainCoordinator: Coordinator {
         homeCoordinator.start()
         
         // Create DiscoveryViewController with coordinator
-        let discoveryVC = DiscoveryViewController()
+        let discoveryVC = DiscoveryViewController(viewModel: )
         let discoveryCoordinator = DiscoveryCoordinator(navigationController: navigationController)
         discoveryVC.coordinator = discoveryCoordinator
         discoveryCoordinator.parentCoordinator = self
