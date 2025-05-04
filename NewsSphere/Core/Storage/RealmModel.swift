@@ -58,6 +58,22 @@ final class ArticleObject: Object {
     }
 }
 
+// MARK: - Realm User Model
+final class UserObject: Object {
+    @Persisted(primaryKey: true) var email: String = ""
+    @Persisted var firstName: String = ""
+    @Persisted var lastName: String = ""
+    @Persisted var registerDate: Date = Date()
+    
+    convenience init(email: String, firstName: String, lastName: String) {
+        self.init()
+        self.email = email
+        self.firstName = firstName
+        self.lastName = lastName
+        self.registerDate = Date()
+    }
+}
+
 class SearchHistoryObject: Object {
     @objc dynamic var keyword: String = ""
     @objc dynamic var searchDate: Date = Date()

@@ -23,8 +23,8 @@ class AppCoordinator: Coordinator {
         //            showAuthFlow()
         //        }
         // Test
-        //        showAuthFlow()
-        showMainFlow()
+                showAuthFlow()
+//        showMainFlow()
         
         window.makeKeyAndVisible()
     }

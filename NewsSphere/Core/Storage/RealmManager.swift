@@ -21,22 +21,22 @@ final class RealmManager {
     private init() {
         // Create a configuration with a higher schema version when model changes
         configuration = Realm.Configuration(
-            schemaVersion: 1,
+            schemaVersion: 2, // Tăng schema version để xử lý migration
             migrationBlock: { migration, oldSchemaVersion in
                 // Handle future schema migrations here
-                if oldSchemaVersion < 1 {
-                    // Nothing to do for now
+                if oldSchemaVersion < 2 {
+                    print("DEBUG - RealmManager: Performing migration from schema version \(oldSchemaVersion) to 2")
+                    // Không cần phải viết code migration cụ thể vì chúng ta muốn xóa dữ liệu cũ
                 }
-            }
+            },
+            deleteRealmIfMigrationNeeded: true // Quan trọng: xóa database cũ nếu cần thiết
         )
         
         do {
             realm = try Realm(configuration: configuration)
-#if DEBUG
-            print("Realm database location: \(String(describing: configuration.fileURL))")
-#endif
+            print("DEBUG - RealmManager: Realm initialized successfully at: \(String(describing: configuration.fileURL))")
         } catch {
-            print("Failed to initialize Realm: \(error.localizedDescription)")
+            print("DEBUG - RealmManager: Failed to initialize Realm: \(error.localizedDescription)")
         }
     }
     
@@ -195,4 +195,48 @@ final class RealmManager {
         }
     }
     
+    // MARK: - User Management
+    
+    func saveUser(email: String, firstName: String, lastName: String) {
+        print("DEBUG - RealmManager: Attempting to save user with email: \(email)")
+        
+        // Thử khởi tạo lại Realm nếu cần
+        if realm == nil {
+            print("DEBUG - RealmManager: Realm was nil, attempting to initialize again")
+            do {
+                realm = try Realm(configuration: configuration)
+                print("DEBUG - RealmManager: Realm re-initialized successfully")
+            } catch {
+                print("DEBUG - RealmManager: Failed to re-initialize Realm: \(error.localizedDescription)")
+                return
+            }
+        }
+        
+        do {
+            guard let realm = realm else {
+                print("DEBUG - RealmManager: Realm still not initialized after re-initialization attempt")
+                return
+            }
+            
+            let userObject = UserObject(email: email, firstName: firstName, lastName: lastName)
+            
+            try realm.write {
+                realm.add(userObject, update: .modified)
+                print("DEBUG - RealmManager: User saved successfully: \(firstName) \(lastName)")
+            }
+        } catch {
+            print("DEBUG - RealmManager: Failed to save user: \(error.localizedDescription)")
+        }
+    }
+    
+    func getUser(email: String) -> UserObject? {
+        guard let realm = realm else { 
+            print("DEBUG - RealmManager: Realm not initialized when getting user")
+            return nil 
+        }
+        
+        let user = realm.object(ofType: UserObject.self, forPrimaryKey: email)
+        print("DEBUG - RealmManager: Retrieved user: \(user?.firstName ?? "not found") \(user?.lastName ?? "")")
+        return user
+    }
 }
