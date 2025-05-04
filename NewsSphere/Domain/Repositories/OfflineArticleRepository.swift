@@ -52,7 +52,8 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
         DispatchQueue.global(qos: .utility).async {
             // create new instance Realm for background thread
             do {
-                let backgroundRealm = try Realm()
+                // Sử dụng cấu hình từ RealmManager chung
+                let backgroundRealm = try Realm(configuration: self.realmManager.getConfiguration())
                 
                 var savedCount = 0
                 var lastError: Error?
@@ -125,7 +126,8 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
         assert(Thread.isMainThread, "Must be called from main thread")
         
         do {
-            let realm = try Realm()
+            // Sử dụng cấu hình từ RealmManager chung
+            let realm = try Realm(configuration: realmManager.getConfiguration())
             let articleObjects = realm.objects(ArticleObject.self)
                 .sorted(byKeyPath: "savedDate", ascending: false)
                 .freeze() // Ensure safety
@@ -144,7 +146,8 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
         print("DEBUG - OfflineArticleRepository: Deleting all offline articles")
         
         do {
-            let realm = try Realm()
+            // Sử dụng cấu hình từ RealmManager chung
+            let realm = try Realm(configuration: realmManager.getConfiguration())
             try realm.write {
                 let allArticles = realm.objects(ArticleObject.self)
                 realm.delete(allArticles)
@@ -159,7 +162,8 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
     
     func getOfflineArticlesCount() -> Int {
         do {
-            let realm = try Realm()
+            // Sử dụng cấu hình từ RealmManager chung
+            let realm = try Realm(configuration: realmManager.getConfiguration())
             let count = realm.objects(ArticleObject.self).count
             print("DEBUG - OfflineArticleRepository: Offline article count: \(count)")
             return count
@@ -169,5 +173,3 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
         }
     }
 }
-
-

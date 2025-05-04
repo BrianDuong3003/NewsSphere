@@ -195,6 +195,30 @@ final class RealmManager {
         }
     }
     
+    // MARK: - Public Access to Configuration
+    // Thêm phương thức này để chia sẻ cấu hình Realm cho toàn ứng dụng
+    func getConfiguration() -> Realm.Configuration {
+        return configuration
+    }
+    
+    // MARK: - Helper Methods for Creating Realm Instances
+    func getRealm() -> Realm? {
+        // Nếu realm đã được khởi tạo, trả về instance đó
+        if let existingRealm = realm {
+            return existingRealm
+        }
+        
+        // Nếu chưa, thử khởi tạo lại
+        do {
+            let newRealm = try Realm(configuration: configuration)
+            print("DEBUG - RealmManager: Created a new Realm instance")
+            return newRealm
+        } catch {
+            print("DEBUG - RealmManager: Failed to create a new Realm instance: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
     // MARK: - User Management
     
     func saveUser(email: String, firstName: String, lastName: String) {
