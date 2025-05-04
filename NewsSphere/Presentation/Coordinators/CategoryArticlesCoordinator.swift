@@ -1,5 +1,5 @@
 //
-//  Untitled.swift
+//  CategoryArticlesCoordinator.swift
 //  NewsSphere
 //
 //  Created by DUONG DONG QUAN on 7/4/25.
