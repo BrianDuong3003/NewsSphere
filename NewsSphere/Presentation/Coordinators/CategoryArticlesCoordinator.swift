@@ -8,7 +8,6 @@
 import Foundation
 import UIKit
 
-// Tạo protocol cho CategoryArticlesCoordinator
 protocol CategoryArticlesCoordinatorProtocol: AnyObject {
     func navigateBack()
     func showArticleDetail(_ article: Article)
@@ -30,7 +29,6 @@ class CategoryArticlesCoordinator: Coordinator, CategoryArticlesCoordinatorProto
         navigationController.pushViewController(categoryArticlesVC, animated: true)
     }
     
-    // Thêm phương thức điều hướng đến màn hình chi tiết bài viết
     func showArticleDetail(_ article: Article) {
         let bookmarkRepository = BookmarkRepository()
         let repository: ArticleRepositoryProtocol = ArticleRepository()

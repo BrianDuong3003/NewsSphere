@@ -11,7 +11,7 @@ import Stevia
 import FirebaseCore
 import FirebaseAuth
 
-class RegisterViewController: UIViewController {
+class RegisterViewController: UIViewController, UITextFieldDelegate {
     let viewModel = RegisterViewModel()
     weak var coordinator: AuthCoordinator?
     
@@ -118,8 +118,11 @@ class RegisterViewController: UIViewController {
         titleLabel.text = "Register"
         
         applyTextFieldStyle(emailTextField, placeholder: "Email")
+        emailTextField.delegate = self
+        
         applyTextFieldStyle(passwordTextField, placeholder: "Password")
         passwordTextField.isSecureTextEntry = true
+        passwordTextField.delegate = self
         
         hideImageView.image = UIImage(named: "hideImage")
         hideImageView.frame.size = CGSize(width: 40, height: 40)
@@ -130,7 +133,9 @@ class RegisterViewController: UIViewController {
         hideLabel.font = .systemFont(ofSize: 18, weight: .medium)
         
         applyTextFieldStyle(firstNameTextField, placeholder: "First name")
+        firstNameTextField.delegate = self
         applyTextFieldStyle(lastNameTextField, placeholder: "Last name")
+        lastNameTextField.delegate = self
         
         policyLabel.text = """
         By registering and using this application, you agree and acknowledge that you understand the \
@@ -207,4 +212,10 @@ class RegisterViewController: UIViewController {
             attributes: [NSAttributedString.Key.foregroundColor: UIColor(.hexDarkText)]
         )
     }
+    // MARK: - UITextFieldDelegate
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
+
 }

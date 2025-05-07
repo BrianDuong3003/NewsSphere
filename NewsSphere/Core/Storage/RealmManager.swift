@@ -19,17 +19,15 @@ final class RealmManager {
     
     // MARK: - Initialization
     private init() {
-        // Create a configuration with a higher schema version when model changes
         configuration = Realm.Configuration(
-            schemaVersion: 2, // Tăng schema version để xử lý migration
+            schemaVersion: 2,
             migrationBlock: { migration, oldSchemaVersion in
-                // Handle future schema migrations here
                 if oldSchemaVersion < 2 {
                     print("DEBUG - RealmManager: Performing migration from schema version \(oldSchemaVersion) to 2")
-                    // Không cần phải viết code migration cụ thể vì chúng ta muốn xóa dữ liệu cũ
+                    
                 }
             },
-            deleteRealmIfMigrationNeeded: true // Quan trọng: xóa database cũ nếu cần thiết
+            deleteRealmIfMigrationNeeded: true
         )
         
         do {
@@ -57,9 +55,7 @@ final class RealmManager {
     
     // MARK: - Public Methods
     
-    /// Saves an article to the database
-    /// - Parameter article: The article to save
-    /// - Returns: Result with success or error
+    // Saves an article to the database
     func saveArticle(_ article: Article) -> Result<Void, RealmError> {
         guard let link = article.link, !link.isEmpty else {
             return .failure(.invalidArticle)
@@ -80,8 +76,7 @@ final class RealmManager {
         }
     }
     
-    /// Retrieves all saved articles
-    /// - Returns: Array of Articles sorted by save date (newest first)
+    // Retrieves all saved articles
     func getSavedArticles() -> [Article] {
         return queue.sync {
             guard let realm = realm else { return [] }
@@ -95,9 +90,7 @@ final class RealmManager {
         }
     }
     
-    /// Checks if an article is already saved
-    /// - Parameter link: The URL of the article to check
-    /// - Returns: Boolean indicating if the article exists
+    // Checks if an article is already saved
     func isArticleSaved(link: String) -> Bool {
         return queue.sync {
             guard let realm = realm else { return false }
@@ -105,9 +98,7 @@ final class RealmManager {
         }
     }
     
-    /// Deletes a specific article
-    /// - Parameter link: The URL of the article to delete
-    /// - Returns: Result with success or error
+    // Deletes a specific article
     func deleteArticle(link: String) -> Result<Void, RealmError> {
         return queue.sync {
             guard let realm = realm else {
@@ -132,8 +123,7 @@ final class RealmManager {
         }
     }
     
-    /// Deletes all saved articles
-    /// - Returns: Result with success or error
+    // Deletes all saved articles
     func deleteAllArticles() -> Result<Void, RealmError> {
         return queue.sync {
             guard let realm = realm else {
@@ -154,8 +144,7 @@ final class RealmManager {
         }
     }
     
-    /// Gets the count of saved articles
-    /// - Returns: Number of saved articles
+    // Gets the count of saved articles
     func getSavedArticlesCount() -> Int {
         return queue.sync {
             guard let realm = realm else { return 0 }
@@ -166,7 +155,7 @@ final class RealmManager {
         guard let realm = realm else { return }
         let searchHistory = SearchHistoryObject()
         searchHistory.keyword = keyword
-        searchHistory.searchDate = Date()  
+        searchHistory.searchDate = Date()
         
         do {
             try realm.write {
@@ -196,19 +185,16 @@ final class RealmManager {
     }
     
     // MARK: - Public Access to Configuration
-    // Thêm phương thức này để chia sẻ cấu hình Realm cho toàn ứng dụng
     func getConfiguration() -> Realm.Configuration {
         return configuration
     }
     
     // MARK: - Helper Methods for Creating Realm Instances
     func getRealm() -> Realm? {
-        // Nếu realm đã được khởi tạo, trả về instance đó
         if let existingRealm = realm {
             return existingRealm
         }
         
-        // Nếu chưa, thử khởi tạo lại
         do {
             let newRealm = try Realm(configuration: configuration)
             print("DEBUG - RealmManager: Created a new Realm instance")
@@ -254,9 +240,9 @@ final class RealmManager {
     }
     
     func getUser(email: String) -> UserObject? {
-        guard let realm = realm else { 
+        guard let realm = realm else {
             print("DEBUG - RealmManager: Realm not initialized when getting user")
-            return nil 
+            return nil
         }
         
         let user = realm.object(ofType: UserObject.self, forPrimaryKey: email)

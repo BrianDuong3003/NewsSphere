@@ -30,11 +30,9 @@ class CategoryRepository {
             case .failure(let error):
                 print("Debug - API Error: \(error)")
                 
-                // Xử lý lỗi cụ thể
                 if case .invalidStatusCode(let statusCode) = error {
                     if statusCode == 429 {
                         print("Debug - Rate limit reached. Please try again later.")
-                        // Sử dụng case .serverError có sẵn thay vì .custom
                         completion(.failure(.serverError))
                         return
                     }

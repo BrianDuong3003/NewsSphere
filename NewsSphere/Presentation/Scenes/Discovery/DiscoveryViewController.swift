@@ -44,11 +44,6 @@ class DiscoveryViewController: UIViewController {
     }
 }
 
-// MARK: - Fetch Data
-extension DiscoveryViewController {
-    
-}
-
 extension DiscoveryViewController {
     private func setupView() {
         view.subviews {

@@ -49,7 +49,6 @@ class AuthCoordinator: Coordinator {
             registerVC.coordinator = self
             navigationController.pushViewController(registerVC, animated: true)
         } else {
-            // If no navigation controller found, create and present one
             let registerVC = RegisterViewController()
             registerVC.coordinator = self
             let newNavController = UINavigationController(rootViewController: registerVC)
