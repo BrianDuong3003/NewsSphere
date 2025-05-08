@@ -134,8 +134,9 @@ class ProfileViewController: UIViewController {
         readOfflineIconView.tintColor = .white
         readOfflineIconView.contentMode = .scaleAspectFit
         
+        // Setup logout button
         logoutButton.setTitle("Logout", for: .normal)
-        logoutButton.setTitleColor(.hexRed, for: .normal)
+        logoutButton.setTitleColor(.systemRed, for: .normal)
         logoutButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
         logoutButton.backgroundColor = .hexBackGround
         logoutButton.layer.cornerRadius = 12
@@ -187,11 +188,11 @@ class ProfileViewController: UIViewController {
     private func setupActions() {
         let bookmarkTapGesture = UITapGestureRecognizer(target: self, action: #selector(bookmarkOptionTapped))
         bookmarkOptionView.addGestureRecognizer(bookmarkTapGesture)
-        bookmarkOptionView.isUserInteractionEnabled = true
+        bookmarkOptionView.isUserInteractionEnabled = true // Ensure interaction is enabled
 
         let readOfflineTapGesture = UITapGestureRecognizer(target: self, action: #selector(readOfflineOptionTapped))
         readOfflineOptionView.addGestureRecognizer(readOfflineTapGesture)
-        readOfflineOptionView.isUserInteractionEnabled = true
+        readOfflineOptionView.isUserInteractionEnabled = true // Ensure interaction is enabled
         
         logoutButton.addTarget(self, action: #selector(logoutButtonTapped), for: .touchUpInside)
     }
@@ -218,12 +219,8 @@ class ProfileViewController: UIViewController {
     private func performLogout() {
         do {
             try Auth.auth().signOut()
-            
             UserSessionManager.shared.userDidLogout()
-            
-            // Reset user defaults
             UserDefaults.standard.set(false, forKey: "isUserLoggedIn")
-            
             coordinator?.didLogout()
             
         } catch {
