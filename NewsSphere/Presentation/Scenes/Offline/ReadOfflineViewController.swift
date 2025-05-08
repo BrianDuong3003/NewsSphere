@@ -158,8 +158,8 @@ extension ReadOfflineViewController {
         deleteButton.setImage(UIImage(named: "ic_trash_button"), for: .normal)
         deleteButton.addTarget(self, action: #selector(deleteArticles), for: .touchUpInside)
         
-        articlesTableView.register(ReadOfflineTableViewCell.self,
-                                   forCellReuseIdentifier: ReadOfflineTableViewCell.identifier)
+        articlesTableView.register(ArticleTableViewCell.self,
+                                   forCellReuseIdentifier: ArticleTableViewCell.identifierOffline)
         articlesTableView.dataSource = self
         articlesTableView.delegate = self
         articlesTableView.estimatedRowHeight = 100
@@ -220,9 +220,9 @@ extension ReadOfflineViewController: UITableViewDelegate, UITableViewDataSource 
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = articlesTableView.dequeueReusableCell(
-            withIdentifier: ReadOfflineTableViewCell.identifier,
+            withIdentifier: ArticleTableViewCell.identifierOffline,
             for: indexPath
-        ) as? ReadOfflineTableViewCell else {
+        ) as? ArticleTableViewCell else {
             return UITableViewCell()
         }
         

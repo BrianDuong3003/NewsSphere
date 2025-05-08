@@ -99,10 +99,15 @@ class MainCoordinator: Coordinator {
            let appCoordinator = appDelegate.appCoordinator {
             appCoordinator.showAuthFlow()
         } else {
-            // Fallback i
+            // Fallback 
             let authCoordinator = AuthCoordinator(window: window)
             authCoordinator.start() 
         }
+    }
+    
+    func restartAuthFlow() {
+        print("DEBUG - MainCoordinator: Restarting auth flow after account deletion")
+        userDidLogout()
     }
     
     func childDidFinish(_ child: Coordinator?) {

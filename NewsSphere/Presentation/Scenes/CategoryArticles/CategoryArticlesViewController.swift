@@ -87,8 +87,6 @@ extension CategoryArticlesViewController {
                 collectionView
             }
         }
-        
-        
     }
     
     private func setupConstraints() {

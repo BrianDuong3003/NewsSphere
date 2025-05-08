@@ -1,5 +1,5 @@
 //
-//  ReadOfflineTableViewCell.swift
+//  ArticleTableViewCell.swift
 //  NewsSphere
 //
 //  Created by DUONG DONG QUAN on 14/3/25.
@@ -9,8 +9,9 @@ import UIKit
 import Stevia
 import Kingfisher
 
-class ReadOfflineTableViewCell: UITableViewCell {
-    static let identifier = "ReadOfflineTableViewCell"
+class ArticleTableViewCell: UITableViewCell {
+    static let identifierOffline = "ReadOfflineTableViewCell"
+    static let identifierBookmark = "BookmarkTableViewCell"
     
     private lazy var articleTitle = UILabel()
     private lazy var articleImage = UIImageView()
@@ -45,7 +46,7 @@ class ReadOfflineTableViewCell: UITableViewCell {
 }
 
 // MARK: - Setup UI
-extension ReadOfflineTableViewCell {
+extension ArticleTableViewCell {
     private func setupView() {
         subviews {
             articleTitle
