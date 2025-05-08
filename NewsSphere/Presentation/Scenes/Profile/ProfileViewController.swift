@@ -30,6 +30,9 @@ class ProfileViewController: UIViewController {
     private let readOfflineOptionView = UIView()
     private let readOfflineLabel = UILabel()
     private let readOfflineIconView = UIImageView()
+    
+    // Logout
+    private let logoutButton = UIButton(type: .system)
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -66,6 +69,7 @@ class ProfileViewController: UIViewController {
             nameLabel
             emailLabel
             optionsStackView
+            logoutButton
         }
 
         optionsStackView.addArrangedSubview(bookmarkOptionView)
@@ -129,6 +133,14 @@ class ProfileViewController: UIViewController {
         readOfflineIconView.image = UIImage(named: "vtdl")
         readOfflineIconView.tintColor = .white
         readOfflineIconView.contentMode = .scaleAspectFit
+        
+        logoutButton.setTitle("Logout", for: .normal)
+        logoutButton.setTitleColor(.systemRed, for: .normal)
+        logoutButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
+        logoutButton.backgroundColor = .hexBackGround
+        logoutButton.layer.cornerRadius = 12
+        logoutButton.layer.borderWidth = 0.3
+        logoutButton.layer.borderColor = UIColor.systemRed.cgColor
     }
 
         private func setupConstraints() {
@@ -165,18 +177,23 @@ class ProfileViewController: UIViewController {
             readOfflineIconView.centerVertically()
             readOfflineIconView.Trailing == readOfflineOptionView.Trailing - 16
             readOfflineIconView.width(24).height(24)
-    
+            
+            logoutButton.Top == optionsStackView.Bottom + 40
+            logoutButton.centerHorizontally()
+            logoutButton.width(200).height(50)
         }
 
     // MARK: - Actions
     private func setupActions() {
         let bookmarkTapGesture = UITapGestureRecognizer(target: self, action: #selector(bookmarkOptionTapped))
         bookmarkOptionView.addGestureRecognizer(bookmarkTapGesture)
-        bookmarkOptionView.isUserInteractionEnabled = true // Ensure interaction is enabled
+        bookmarkOptionView.isUserInteractionEnabled = true
 
         let readOfflineTapGesture = UITapGestureRecognizer(target: self, action: #selector(readOfflineOptionTapped))
         readOfflineOptionView.addGestureRecognizer(readOfflineTapGesture)
-        readOfflineOptionView.isUserInteractionEnabled = true // Ensure interaction is enabled
+        readOfflineOptionView.isUserInteractionEnabled = true
+        
+        logoutButton.addTarget(self, action: #selector(logoutButtonTapped), for: .touchUpInside)
     }
 
     @objc private func bookmarkOptionTapped() {
@@ -185,6 +202,39 @@ class ProfileViewController: UIViewController {
 
     @objc private func readOfflineOptionTapped() {
         coordinator?.navigateToReadOffline()
+    }
+    
+    @objc private func logoutButtonTapped() {
+        let alert = UIAlertController(title: "Logout", message: "Are you sure you want to logout?", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Logout", style: .destructive) { [weak self] _ in
+            self?.performLogout()
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    private func performLogout() {
+        do {
+            try Auth.auth().signOut()
+            
+            UserSessionManager.shared.userDidLogout()
+            
+            // Reset user defaults
+            UserDefaults.standard.set(false, forKey: "isUserLoggedIn")
+            
+            coordinator?.didLogout()
+            
+        } catch {
+            print("ERROR - ProfileViewController: Failed to sign out: \(error.localizedDescription)")
+            
+            let alert = UIAlertController(title: "Error", 
+                                         message: "Failed to logout. Please try again.", 
+                                         preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        }
     }
 
     // MARK: - Data Fetching

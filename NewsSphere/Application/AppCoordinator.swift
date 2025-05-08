@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class AppCoordinator: Coordinator {
     var childCoordinators: [Coordinator] = []
@@ -17,23 +18,30 @@ class AppCoordinator: Coordinator {
     }
     
     func start() {
-        //        if isUserLoggedIn() {
-        //            showMainFlow()
-        //        } else {
-        //            showAuthFlow()
-        //        }
-        // Test
-                showAuthFlow()
-//        showMainFlow()
+        if isUserLoggedIn() {
+            showMainFlow()
+        } else {
+            showAuthFlow()
+        }
         
         window.makeKeyAndVisible()
     }
     
     private func isUserLoggedIn() -> Bool {
-        return UserDefaults.standard.bool(forKey: "isUserLoggedIn")
+        // Check if user is logged in using Firebase Auth
+        if let currentUser = Auth.auth().currentUser {
+            // Initialize the UserSessionManager with the current user
+            UserSessionManager.shared.userDidLogin(userID: currentUser.uid)
+            return true
+        }
+        return false
     }
     
-    private func showAuthFlow() {
+    func showAuthFlow() {
+        // Clean up any existing coordinators
+        childCoordinators.removeAll()
+        mainCoordinator = nil
+        
         let authCoordinator = AuthCoordinator(window: window)
         authCoordinator.delegate = self
         childCoordinators.append(authCoordinator)
@@ -41,6 +49,9 @@ class AppCoordinator: Coordinator {
     }
     
     private func showMainFlow() {
+        // Clean up any existing coordinators
+        childCoordinators.removeAll()
+        
         let coordinator = MainCoordinator(window: window)
         mainCoordinator = coordinator
         childCoordinators.append(coordinator)
@@ -50,6 +61,16 @@ class AppCoordinator: Coordinator {
 
 extension AppCoordinator: AuthCoordinatorDelegate {
     func didFinishAuthentication() {
+        // Get the current user ID from Firebase Auth
+        guard let currentUser = Auth.auth().currentUser else {
+            print("ERROR - AppCoordinator: User authenticated but Firebase user is nil")
+            return
+        }
+        
+        // Initialize UserSessionManager with the logged-in user
+        UserSessionManager.shared.userDidLogin(userID: currentUser.uid)
+        
+        // Set user login state
         UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
         childCoordinators.removeAll { $0 is AuthCoordinator }
         showMainFlow()

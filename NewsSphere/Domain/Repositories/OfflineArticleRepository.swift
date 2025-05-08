@@ -24,10 +24,15 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
     
     init(
         articleRepository: ArticleRepositoryProtocol = ArticleRepository(),
-        realmManager: RealmManager = RealmManager.shared
+        realmManager: RealmManager? = nil
     ) {
         self.articleRepository = articleRepository
-        self.realmManager = realmManager
+        // Use the provided RealmManager or get it from UserSessionManager
+        self.realmManager = realmManager ?? UserSessionManager.shared.getCurrentRealmManager() ?? {
+            print("ERROR - OfflineArticleRepository: No RealmManager available. Creating a guest one.")
+            // Handle guest/error case
+            return RealmManager(userUID: "guest")!
+        }()
     }
     
     // make sure execute on main thread

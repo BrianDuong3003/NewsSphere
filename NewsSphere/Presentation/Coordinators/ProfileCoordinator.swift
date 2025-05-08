@@ -62,6 +62,15 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
         navigationController.popViewController(animated: true)
     }
     
+    func didLogout() {
+        print("DEBUG - ProfileCoordinator: User logged out")
+        // Clean up any resources if needed
+        childCoordinators.removeAll()
+        
+        // Notify parent coordinator to handle the logout
+        parentCoordinator?.userDidLogout()
+    }
+    
     func didFinish() {
         parentCoordinator?.childDidFinish(self)
     }

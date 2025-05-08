@@ -88,6 +88,23 @@ class MainCoordinator: Coordinator {
         detailCoordinator.start()
     }
     
+    func userDidLogout() {
+        print("DEBUG - MainCoordinator: Handling user logout")
+        
+        // Clean up coordinators and resources
+        childCoordinators.removeAll()
+        
+        // Create and show the auth flow by notifying AppCoordinator
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate,
+           let appCoordinator = appDelegate.appCoordinator {
+            appCoordinator.showAuthFlow()
+        } else {
+            // Fallback i
+            let authCoordinator = AuthCoordinator(window: window)
+            authCoordinator.start() 
+        }
+    }
+    
     func childDidFinish(_ child: Coordinator?) {
         if let child = child {
             removeChildCoordinator(child)
