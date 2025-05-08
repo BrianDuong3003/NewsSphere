@@ -12,11 +12,9 @@ import Stevia
 class ProfileViewController: UIViewController {
     var coordinator: ProfileCoordinator?
     
-    private let profileScrollView = UIScrollView()
     private let contentView = UIView()
     
     private let avatarImageView = UIImageView()
-    private let avatarEditButton = UIButton(type: .system)
     
     private let nameLabel = UILabel()
     private let emailLabel = UILabel()
@@ -41,16 +39,11 @@ class ProfileViewController: UIViewController {
     
     private func setupUI() {
         view.subviews {
-            profileScrollView
-        }
-        
-        profileScrollView.subviews {
             contentView
         }
         
         contentView.subviews {
             avatarImageView
-            avatarEditButton
             nameLabel
             emailLabel
         }
@@ -58,14 +51,8 @@ class ProfileViewController: UIViewController {
         avatarImageView.backgroundColor = .lightGray
         avatarImageView.contentMode = .scaleAspectFill
         avatarImageView.clipsToBounds = true
-        avatarImageView.image = UIImage(named: "default_avatar")
-        
-        avatarEditButton.setImage(UIImage(systemName: "pencil.circle.fill"), for: .normal)
-        avatarEditButton.tintColor = .white
-        avatarEditButton.backgroundColor = .red
-        avatarEditButton.layer.cornerRadius = 15
-        avatarEditButton.clipsToBounds = true
-        
+        avatarImageView.image = UIImage(named: "default")
+            
         nameLabel.font = .systemFont(ofSize: 24, weight: .bold)
         nameLabel.textColor = .white
         nameLabel.textAlignment = .center
@@ -76,8 +63,6 @@ class ProfileViewController: UIViewController {
     }
     
     private func setupConstraints() {
-        profileScrollView.fillContainer()
-        
         contentView.width(UIScreen.main.bounds.width)
         contentView.height(UIScreen.main.bounds.height)
         contentView.top(0).left(0).right(0).bottom(0)
@@ -94,10 +79,10 @@ class ProfileViewController: UIViewController {
         emailLabel.Top == nameLabel.Bottom + 8
         emailLabel.left(20).right(20)
         
-        avatarEditButton.width(30).height(30)
-        avatarEditButton.right(0).bottom(0)
-        avatarEditButton.CenterX == avatarImageView.Trailing + 5
-        avatarEditButton.CenterY == avatarImageView.Bottom
+//        avatarEditButton.width(30).height(30)
+//        avatarEditButton.right(0).bottom(0)
+//        avatarEditButton.CenterX == avatarImageView.Trailing + 5
+//        avatarEditButton.CenterY == avatarImageView.Bottom
     }
     
     override func viewDidLayoutSubviews() {

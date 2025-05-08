@@ -13,7 +13,7 @@ class CategoryArticlesViewController: UIViewController {
     private lazy var mainTitleLabel = UILabel()
     private lazy var contentView = UIView()
     private lazy var backButton = UIButton()
-    private lazy var topView = UIView() // Thêm topView giống ReadOfflineViewController
+    private lazy var topView = UIView() 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 12
