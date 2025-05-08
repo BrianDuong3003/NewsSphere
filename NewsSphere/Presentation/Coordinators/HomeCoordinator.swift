@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-class HomeCoordinator: Coordinator {
+class HomeCoordinator: Coordinator, ArticleNavigator {
     var childCoordinators: [any Coordinator] = []
     let navigationController: UINavigationController
     var parentCoordinator: MainCoordinator?
@@ -21,29 +21,6 @@ class HomeCoordinator: Coordinator {
         
     }
     
-//    func showArticleDetail(_ article: Article, selectedCategory: String? = nil) {
-//        print("DEBUG - HomeCoordinator: Showing article detail with category: \(selectedCategory ?? "none")")
-//        
-//        if let parent = parentCoordinator {
-//            parent.showArticleDetail(article, category: selectedCategory)
-//        } else {
-//            // Fallback when parentCoordinator nil
-//            let bookmarkRepository = BookmarkRepository()
-//            let repository: ArticleRepositoryProtocol = ArticleRepository()
-//            let detailCoordinator = ArticleDetailCoordinator(
-//                navigationController: navigationController,
-//                article: article,
-//                repository: repository,
-//                bookmarkRepository: bookmarkRepository)
-//            
-//            if let category = selectedCategory {
-//                detailCoordinator.selectedCategory = category
-//            }
-//            
-//            addChildCoordinator(detailCoordinator)
-//            detailCoordinator.start()
-//        }
-//    }
     func showArticleDetail(_ article: Article, selectedCategory: String? = nil) {
         guard let parent = parentCoordinator else {
             print("ERROR - HomeCoordinator: parentCoordinator is nil. Cannot show article detail.")

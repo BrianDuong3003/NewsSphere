@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "bx_trash.png",
+      "filename" : "ic_trash_button.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "bx_trash@2x.png",
+      "filename" : "ic_trash_button@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "bx_trash@3x.png",
+      "filename" : "ic_trash_button@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

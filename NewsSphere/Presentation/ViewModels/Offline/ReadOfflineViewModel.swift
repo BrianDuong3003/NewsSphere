@@ -1,5 +1,5 @@
 //
-//  ArticleDetailViewModel.swift
+//  ReadOfflineViewModel.swift
 //  NewsSphere
 //
 //  Created by DUONG DONG QUAN on 6/3/25.
@@ -28,51 +28,65 @@ class ReadOfflineViewModel {
     // MARK: - Data methods
     func loadOfflineArticles() {
         print("DEBUG - ReadOfflineViewModel: Loading offline articles")
-        if Thread.isMainThread {
-            articles = repository.getAllOfflineArticles()
-            print("DEBUG - ReadOfflineViewModel: Loaded \(articles.count) offline articles")
-            onArticlesUpdated?()
-        } else {
+        
+        // make sure execute on main thread
+        if !Thread.isMainThread {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.articles = self.repository.getAllOfflineArticles()
-                print(" ReadOfflineViewModel: Loaded \(self.articles.count) offline articles from background thread")
-                self.onArticlesUpdated?()
+                self.loadOfflineArticles()
             }
+            return
         }
+        
+        articles = repository.getAllOfflineArticles()
+        print("DEBUG - ReadOfflineViewModel: Loaded \(articles.count) offline articles")
+        onArticlesUpdated?()
     }
     
     func reloadLatestArticles(completion: CompletionHandler? = nil) {
         print("DEBUG - ReadOfflineViewModel: Reloading latest articles")
+        
+        // make sure execute on main thread
+        if !Thread.isMainThread {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.reloadLatestArticles(completion: completion)
+            }
+            return
+        }
+        
         onLoadingStateChanged?(true)
         
         repository.fetchLatestArticles { [weak self] result in
             guard let self = self else { return }
             
-            switch result {
-            case .success(let fetchedArticles):
-                print("DEBUG - ReadOfflineViewModel: Fetched \(fetchedArticles.count) latest articles")
-                
-                self.repository.saveArticles(fetchedArticles) { saveResult in
-                    self.onLoadingStateChanged?(false)
+            // make sure execute on main thread
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let fetchedArticles):
+                    print("DEBUG - ReadOfflineViewModel: Fetched \(fetchedArticles.count) latest articles")
                     
-                    switch saveResult {
-                    case .success(let count):
-                        print("DEBUG - ReadOfflineViewModel: Saved \(count) articles for offline reading")
-                        self.loadOfflineArticles()
-                        let message = "Downloaded \(count) articles for offline reading"
-                        completion?(.success(message))
+                    self.repository.saveArticles(fetchedArticles) { saveResult in
+                        _ = self.repository.cleanupUnusedArticles()
                         
-                    case .failure(let error):
-                        print("DEBUG - ReadOfflineViewModel: Error saving articles: \(error.localizedDescription)")
-                        self.onError?(error.localizedDescription)
-                        completion?(.failure(error))
+                        self.onLoadingStateChanged?(false)
+                        
+                        switch saveResult {
+                        case .success(let count):
+                            print("DEBUG - ReadOfflineViewModel: Saved \(count) articles for offline reading")
+                            self.loadOfflineArticles()
+                            let message = "Downloaded \(count) articles for offline reading"
+                            completion?(.success(message))
+                            
+                        case .failure(let error):
+                            print("DEBUG - ReadOfflineViewModel: Error saving articles: \(error.localizedDescription)")
+                            self.onError?(error.localizedDescription)
+                            completion?(.failure(error))
+                        }
                     }
-                }
-                
-            case .failure(let error):
-                print("DEBUG - ReadOfflineViewModel: Error fetching latest articles: \(error.localizedDescription)")
-                DispatchQueue.main.async {
+                    
+                case .failure(let error):
+                    print("DEBUG - ReadOfflineViewModel: Error fetching latest articles: \(error.localizedDescription)")
                     self.onLoadingStateChanged?(false)
                     self.onError?(error.localizedDescription)
                     completion?(.failure(error))
@@ -83,8 +97,8 @@ class ReadOfflineViewModel {
     
     func deleteAllArticles(completion: CompletionHandler? = nil) {
         print("DEBUG - ReadOfflineViewModel: Deleting all offline articles")
-        onLoadingStateChanged?(true)
         
+        // make sure execute on main thread
         if !Thread.isMainThread {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
@@ -93,11 +107,15 @@ class ReadOfflineViewModel {
             return
         }
         
+        onLoadingStateChanged?(true)
+        
         let result = repository.deleteAllOfflineArticles()
         
         switch result {
         case .success:
             print("DEBUG - ReadOfflineViewModel: Successfully deleted all offline articles")
+            _ = repository.cleanupUnusedArticles()
+            
             self.onLoadingStateChanged?(false)
             self.articles.removeAll()
             self.onArticlesUpdated?()

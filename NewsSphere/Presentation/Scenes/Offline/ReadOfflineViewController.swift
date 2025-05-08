@@ -18,7 +18,7 @@ class ReadOfflineViewController: UIViewController {
     private lazy var loadingIndicator = UIActivityIndicatorView(style: .medium)
     private lazy var emptyStateLabel = UILabel()
     
-    var coordinator: HomeCoordinator?
+    var coordinator: ArticleNavigator?
     var viewModel: ReadOfflineViewModel
     
     override func viewDidLoad() {
@@ -145,7 +145,7 @@ extension ReadOfflineViewController {
         view.backgroundColor = UIColor.hexBackGround
         topView.backgroundColor = UIColor.hexRed
         
-        titleLabel.text = "Read offline"
+        titleLabel.text = "Read Offline"
         titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
         titleLabel.textColor = .white
         

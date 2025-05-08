@@ -58,6 +58,30 @@ final class ArticleObject: Object {
     }
 }
 
+// MARK: - Bookmark Link Object
+final class BookmarkLinkObject: Object {
+    @Persisted(primaryKey: true) var link: String = ""
+    @Persisted var bookmarkedDate: Date = Date()
+    
+    convenience init(link: String) {
+        self.init()
+        self.link = link
+        self.bookmarkedDate = Date()
+    }
+}
+
+// MARK: - Offline Link Object
+final class OfflineLinkObject: Object {
+    @Persisted(primaryKey: true) var link: String = ""
+    @Persisted var savedOfflineDate: Date = Date()
+    
+    convenience init(link: String) {
+        self.init()
+        self.link = link
+        self.savedOfflineDate = Date()
+    }
+}
+
 // MARK: - Realm User Model
 final class UserObject: Object {
     @Persisted(primaryKey: true) var email: String = ""
