@@ -14,8 +14,8 @@ class RegisterViewModel {
     var onErrorMessage: ((String) -> Void)?
     var onRegisterSuccess: (() -> Void)?
     
-    // RealmManager để lưu thông tin người dùng
-    private let realmManager = RealmManager.shared
+    // FirestoreUserManager để lưu thông tin người dùng lên cloud
+    private let firestoreManager = FirestoreUserManager.shared
 
     func register(email: String, password: String, firstName: String, lastName: String) {
         
@@ -36,7 +36,7 @@ class RegisterViewModel {
 
         print("DEBUG - RegisterViewModel: Creating Firebase user with email: \(email)")
         
-        Auth.auth().createUser(withEmail: email, password: password) { [weak self] _, error in
+        Auth.auth().createUser(withEmail: email, password: password) { [weak self] authResult, error in
             guard let self = self else { return }
             
             if let error = error {
@@ -45,21 +45,24 @@ class RegisterViewModel {
             } else {
                 print("DEBUG - RegisterViewModel: Firebase user created successfully")
                 
-                // Lưu thông tin người dùng vào Realm
-                self.realmManager.saveUser(
-                    email: email,
-                    firstName: firstName,
-                    lastName: lastName
-                )
-                
-                // Test lại việc lưu bằng cách thử đọc thông tin
-                if let user = self.realmManager.getUser(email: email) {
-                    print("DEBUG - RegisterViewModel: Successfully verified user in Realm: \(user.firstName) \(user.lastName)")
-                } else {
-                    print("DEBUG - RegisterViewModel: Warning: Could not verify user in Realm after saving")
+                // Lấy UID từ kết quả đăng ký
+                guard let user = authResult?.user, let uid = Auth.auth().currentUser?.uid else {
+                    print("DEBUG - RegisterViewModel: Unable to get UID from Firebase Auth")
+                    self.onErrorMessage?("Lỗi xác thực. Vui lòng thử lại.")
+                    return
                 }
                 
-                self.onRegisterSuccess?()
+                // Lưu thông tin người dùng vào Firestore với UID
+                self.firestoreManager.saveUser(uid: uid, email: email, firstName: firstName, lastName: lastName) { error in
+                    if let error = error {
+                        print("DEBUG - RegisterViewModel: Error saving user to Firestore: \(error.localizedDescription)")
+                        self.onErrorMessage?("Đăng ký thành công nhưng không lưu được thông tin người dùng. Vui lòng cập nhật trong Profile.")
+                        self.onRegisterSuccess?()
+                    } else {
+                        print("DEBUG - RegisterViewModel: User successfully saved to Firestore")
+                        self.onRegisterSuccess?()
+                    }
+                }
             }
         }
     }

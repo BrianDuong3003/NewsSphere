@@ -126,7 +126,6 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
         assert(Thread.isMainThread, "Must be called from main thread")
         
         do {
-            // Sử dụng cấu hình từ RealmManager chung
             let realm = try Realm(configuration: realmManager.getConfiguration())
             let articleObjects = realm.objects(ArticleObject.self)
                 .sorted(byKeyPath: "savedDate", ascending: false)
@@ -146,7 +145,6 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
         print("DEBUG - OfflineArticleRepository: Deleting all offline articles")
         
         do {
-            // Sử dụng cấu hình từ RealmManager chung
             let realm = try Realm(configuration: realmManager.getConfiguration())
             try realm.write {
                 let allArticles = realm.objects(ArticleObject.self)
@@ -162,7 +160,6 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
     
     func getOfflineArticlesCount() -> Int {
         do {
-            // Sử dụng cấu hình từ RealmManager chung
             let realm = try Realm(configuration: realmManager.getConfiguration())
             let count = realm.objects(ArticleObject.self).count
             print("DEBUG - OfflineArticleRepository: Offline article count: \(count)")

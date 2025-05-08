@@ -111,7 +111,6 @@ extension HomeViewController {
     }
     
     private func setupConstraints() {
-//        topView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0).isActive = true
         topView.Top == view.safeAreaLayoutGuide.Top
         
         topView.layout {

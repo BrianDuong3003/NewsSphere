@@ -10,7 +10,10 @@ import Stevia
 
 class DiscoveryViewController: UIViewController {
     
-    private lazy var viewModel = DiscoveryViewModel()
+    // MARK: - Properties
+    private lazy var viewModel: DiscoveryViewModel = {
+        return DiscoveryViewModel(coordinator: coordinator)
+    }()
     
     private lazy var mainTitleLabel = UILabel()
     private lazy var contentView = UIView()
@@ -24,15 +27,14 @@ class DiscoveryViewController: UIViewController {
     }()
     
     var coordinator: DiscoveryCoordinator?
-    private let categoryRepository = CategoryRepository()
-    private var categories: [NewsCategoryType] = NewsCategoryType.allCases
-    private var filterCategories: [NewsCategoryType] = NewsCategoryType.allCases
     
+    // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
         setupStyle()
         setupConstraints()
+        setupBindings()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -42,11 +44,21 @@ class DiscoveryViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
-}
-
-// MARK: - Fetch Data
-extension DiscoveryViewController {
     
+    // MARK: - Private Methods
+    private func setupBindings() {
+        viewModel.onCategoriesUpdated = { [weak self] in
+            DispatchQueue.main.async {
+                self?.collectionView.reloadData()
+            }
+        }
+        
+        viewModel.onErrorOccurred = { [weak self] errorMessage in
+            DispatchQueue.main.async {
+                print("Error: \(errorMessage)")
+            }
+        }
+    }
 }
 
 extension DiscoveryViewController {
@@ -115,29 +127,27 @@ extension DiscoveryViewController {
     }
 }
 
-// MARK: - CollectionView Deledate, Datasource
+// MARK: - CollectionView Delegate, Datasource
 extension DiscoveryViewController: UICollectionViewDelegate, UICollectionViewDataSource,
                                    UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print(categories.count)
-        return categories.count
+        return viewModel.numberOfCategories()
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: "DiscoveryCell", for: indexPath)
-                as? DiscoveryCell else {
+                as? DiscoveryCell,
+              let category = viewModel.category(at: indexPath.item) else {
             return UICollectionViewCell()
         }
-        let category = categories[indexPath.item]
-        cell.configure(with: category.displayName.uppercased(), image: category.image)
         
+        cell.configure(with: category.displayName.uppercased(), image: category.image)
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedCategory = categories[indexPath.item]
-        coordinator?.showArticles(for: selectedCategory.apiValue)
+        viewModel.didSelectCategory(at: indexPath.item)
     }
     
     func collectionView(_ collectiornView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -156,21 +166,12 @@ extension DiscoveryViewController: UICollectionViewDelegate, UICollectionViewDat
 
 extension DiscoveryViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        guard !searchText.isEmpty else {
-            categories = filterCategories
-            collectionView.reloadData()
-            return
-        }
-        
-        if searchText == "" {
-            categories = filterCategories
-            collectionView.reloadData()
-        }
-        
-        categories = filterCategories.filter({ category in
-            category.displayName.lowercased().contains(searchText.lowercased())
-        })
-        
-        collectionView.reloadData()
+        viewModel.filterCategories(with: searchText)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        viewModel.resetFilter()
+        searchBar.resignFirstResponder()
     }
 }

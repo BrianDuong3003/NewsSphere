@@ -13,7 +13,7 @@ class CategoryArticlesViewController: UIViewController {
     private lazy var mainTitleLabel = UILabel()
     private lazy var contentView = UIView()
     private lazy var backButton = UIButton()
-    private lazy var topView = UIView() // Thêm topView giống ReadOfflineViewController
+    private lazy var topView = UIView() 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 12
@@ -88,28 +88,22 @@ extension CategoryArticlesViewController {
             }
         }
         
-        // Add target cho backButton
-        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        
     }
     
     private func setupConstraints() {
-        // Top view
         topView.top(0).left(0).right(0)
         topView.Height == view.Height * 0.15
         
-        // Title
         mainTitleLabel.centerHorizontally().CenterY == backButton.CenterY
 
-        // Back button - vị trí giống như trong read offline
         backButton.Leading == view.Leading + 20
         backButton.Bottom == topView.Bottom - 15
         backButton.width(30).height(30)
         
-        // Content view
         contentView.Top == topView.Bottom
         contentView.left(0).right(0).bottom(0)
         
-        // Collection view
         collectionView.left(12).right(12).bottom(0).top(10)
     }
     
@@ -124,8 +118,8 @@ extension CategoryArticlesViewController {
         mainTitleLabel.textColor = .white
         mainTitleLabel.textAlignment = .center
         
-        // Style cho backButton - giống như ReadOfflineViewController
         backButton.setImage(UIImage(named: "ic_back_button"), for: .normal)
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         backButton.tintColor = .white
         
         contentView.backgroundColor = .hexBackGround
@@ -156,7 +150,6 @@ extension CategoryArticlesViewController: UICollectionViewDelegate, UICollection
         return cell
     }
     
-    // Thêm xử lý khi người dùng bấm vào cell
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedArticle = articles[indexPath.item]
         coordinator?.showArticleDetail(selectedArticle)
@@ -176,7 +169,6 @@ extension CategoryArticlesViewController: UICollectionViewDelegate, UICollection
     }
 }
 
-// Mở rộng CategoryArticlesViewController để tuân thủ CategoryArticlesCoordinatorProtocol
 extension CategoryArticlesViewController: CategoryArticlesCoordinatorProtocol {
     func navigateBack() {
         coordinator?.navigateBack()
