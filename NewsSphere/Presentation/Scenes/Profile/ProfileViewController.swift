@@ -135,7 +135,7 @@ class ProfileViewController: UIViewController {
         readOfflineIconView.contentMode = .scaleAspectFit
         
         logoutButton.setTitle("Logout", for: .normal)
-        logoutButton.setTitleColor(.systemRed, for: .normal)
+        logoutButton.setTitleColor(.hexRed, for: .normal)
         logoutButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
         logoutButton.backgroundColor = .hexBackGround
         logoutButton.layer.cornerRadius = 12
@@ -180,7 +180,7 @@ class ProfileViewController: UIViewController {
             
             logoutButton.Top == optionsStackView.Bottom + 40
             logoutButton.centerHorizontally()
-            logoutButton.width(200).height(50)
+            logoutButton.width(170).height(50)
         }
 
     // MARK: - Actions
