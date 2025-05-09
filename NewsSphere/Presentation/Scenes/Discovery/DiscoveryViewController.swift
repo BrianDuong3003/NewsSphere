@@ -11,9 +11,7 @@ import Stevia
 class DiscoveryViewController: UIViewController {
     
     // MARK: - Properties
-    private lazy var viewModel: DiscoveryViewModel = {
-        return DiscoveryViewModel(coordinator: coordinator)
-    }()
+    private let viewModel: DiscoveryViewModel
     
     private lazy var mainTitleLabel = UILabel()
     private lazy var contentView = UIView()
@@ -27,6 +25,16 @@ class DiscoveryViewController: UIViewController {
     }()
     
     var coordinator: DiscoveryCoordinator?
+    
+    // MARK: - Initialization
+    init(viewModel: DiscoveryViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     // MARK: - Lifecycle Methods
     override func viewDidLoad() {

@@ -18,7 +18,7 @@ protocol ArticleNavigator: AnyObject {
 class ProfileCoordinator: Coordinator, ArticleNavigator {
     var childCoordinators: [any Coordinator] = []
     let navigationController: UINavigationController
-    weak var parentCoordinator: MainCoordinator?
+    var parentCoordinator: MainCoordinator?
     
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController

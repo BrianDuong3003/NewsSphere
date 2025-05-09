@@ -10,7 +10,7 @@ import Stevia
 
 class SearchViewController: UIViewController {
     // MARK: - Properties
-    private let viewModel = SearchViewModel()
+    private let viewModel: SearchViewModel
     var coordinator: HomeCoordinator?
 
     // MARK: - UI Elements
@@ -27,6 +27,15 @@ class SearchViewController: UIViewController {
 
     private var searchTimer: Timer?
     private let debounceTime: TimeInterval = 0.5
+
+    init(viewModel: SearchViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     // MARK: - ViewController Lifecycle
     override func viewDidLoad() {
@@ -241,8 +250,8 @@ extension SearchViewController {
             print("ERROR: Coordinator is nil in SearchViewController!")
         }
         coordinator?.navigationController.popViewController(animated: true)
-        }
     }
+}
 
 // MARK: - UISearchBarDelegate
 extension SearchViewController: UISearchBarDelegate {

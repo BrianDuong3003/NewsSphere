@@ -26,15 +26,20 @@ class HomeViewController: UIViewController {
         cellType: HorizontalViewCell.self,
         cellIdentifier: "HorizontalViewCell")
     
-    private lazy var viewModel: HomeViewModel = {
-        let repository: ArticleRepositoryProtocol = ArticleRepository()
-        return HomeViewModel(articleRepository: repository)
-    }()
-    
+    private let viewModel: HomeViewModel
     var coordinator: HomeCoordinator?
     private lazy var bookmarkRepository: BookmarkRepositoryProtocol = {
         return BookmarkRepository()
     }()
+    
+    init(viewModel: HomeViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()

@@ -11,7 +11,7 @@ import UIKit
 class HomeCoordinator: Coordinator, ArticleNavigator {
     var childCoordinators: [any Coordinator] = []
     let navigationController: UINavigationController
-    weak var parentCoordinator: MainCoordinator? // to prevent retain cycle
+    var parentCoordinator: MainCoordinator?
     
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
@@ -44,7 +44,8 @@ class HomeCoordinator: Coordinator, ArticleNavigator {
     }
     
     func showSearchScreen() {
-        let searchViewController = SearchViewController()
+        let viewModel = SearchViewModel()
+        let searchViewController = SearchViewController(viewModel: viewModel)
         searchViewController.coordinator = self
         navigationController.pushViewController(searchViewController, animated: true)
     }
