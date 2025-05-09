@@ -11,7 +11,7 @@ import UIKit
 class HomeCoordinator: Coordinator, ArticleNavigator {
     var childCoordinators: [any Coordinator] = []
     let navigationController: UINavigationController
-    var parentCoordinator: MainCoordinator?
+    weak var parentCoordinator: MainCoordinator? // to prevent retain cycle
     
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
@@ -41,6 +41,12 @@ class HomeCoordinator: Coordinator, ArticleNavigator {
         let readOfflineViewController = ReadOfflineViewController(viewModel: viewModel)
         readOfflineViewController.coordinator = self
         navigationController.pushViewController(readOfflineViewController, animated: true)
+    }
+    
+    func showSearchScreen() {
+        let searchViewController = SearchViewController()
+        searchViewController.coordinator = self
+        navigationController.pushViewController(searchViewController, animated: true)
     }
     
     func didFinishReadOffline() {

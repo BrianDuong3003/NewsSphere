@@ -106,6 +106,7 @@ extension HomeViewController {
         
         searchButton.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
         searchButton.tintColor = .lightGray
+        searchButton.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
         
         listButton.setImage(UIImage(named: "list"), for: .normal)
     }
@@ -137,6 +138,12 @@ extension HomeViewController {
         print("Location button tapped")
         navigationController?.setNavigationBarHidden(false, animated: true)
         coordinator?.showLocationScreen()
+    }
+    
+    @objc private func searchButtonTapped() {
+        print("Search button tapped")
+        navigationController?.setNavigationBarHidden(false, animated: true)
+        coordinator?.showSearchScreen()
     }
     
     @objc private func downloadButtonTapped() {
@@ -245,7 +252,7 @@ extension HomeViewController: HomeViewModelDelegate {
             let selectedCategory = viewModel.getCurrentCategory()
             coordinator.showArticleDetail(article, selectedCategory: selectedCategory)
         } else {
-            print("Coordinator is nil, using fallback navigation.")
+            print("Coordinator is nil")
         }
     }
 }

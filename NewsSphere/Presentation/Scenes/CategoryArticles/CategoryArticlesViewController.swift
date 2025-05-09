@@ -38,6 +38,7 @@ class CategoryArticlesViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationItem.hidesBackButton = true
         setupView()
         setupConstraints()
         setupStyle()
@@ -52,27 +53,14 @@ class CategoryArticlesViewController: UIViewController {
 // MARK: - Fetch Data
 extension CategoryArticlesViewController {
     private func fetchArticles() {
-        // Hiển thị loading state nếu cần
         viewModel.fetchArticles { [weak self] articles in
             self?.articles = articles
             self?.collectionView.reloadData()
             
-            // Kiểm tra và hiển thị trạng thái khi không có bài viết
             if articles.isEmpty {
-                self?.showEmptyState()
-            } else {
-                self?.hideEmptyState()
+                print("No articles found for this category")
             }
         }
-    }
-    
-    private func showEmptyState() {
-        // Có thể hiển thị message hoặc view trống tùy thuộc vào UI của app
-        print("No articles found for this category")
-    }
-    
-    private func hideEmptyState() {
-        // Ẩn message hoặc view trống nếu cần
     }
 }
 

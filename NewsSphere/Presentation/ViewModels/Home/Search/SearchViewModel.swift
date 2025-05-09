@@ -57,6 +57,38 @@ class SearchViewModel {
         loadSearchHistory()
     }
 
+    func clearSearchResults() {
+        articles.value = []
+    }
+
+    func article(at index: Int) -> Article? {
+        guard index >= 0, index < articles.value.count else { return nil }
+        return articles.value[index]
+    }
+
+    func formatTimeAgo(for article: Article) -> String {
+        guard let pubDate = article.pubDate else { return "Unknown" }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        
+        guard let date = formatter.date(from: pubDate) else { return "Unknown" }
+        
+        let now = Date()
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.minute, .hour, .day], from: date, to: now)
+        
+        if let days = components.day, days > 0 {
+            return "\(days)d ago"
+        } else if let hours = components.hour, hours > 0 {
+            return "\(hours)h ago"
+        } else if let minutes = components.minute, minutes > 0 {
+            return "\(minutes)m ago"
+        } else {
+            return "Just now"
+        }
+    }
+
     private func saveSearchHistory(keyword: String) {
         guard let realmManager = realmManager else { return }
         realmManager.saveSearchHistory(keyword: keyword)
