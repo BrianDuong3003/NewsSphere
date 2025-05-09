@@ -11,7 +11,7 @@ import Stevia
 class ProfileViewController: UIViewController {
     // MARK: - Properties
     var coordinator: ProfileCoordinator?
-    private let firestoreManager = FirestoreUserManager.shared
+    let viewModel: ProfileViewModel
     
     // MARK: - UI Elements
     private let contentView = UIView()
@@ -43,17 +43,27 @@ class ProfileViewController: UIViewController {
     private let ruleLabel = UILabel()
     
     // MARK: - Lifecycle
+    init(viewModel: ProfileViewModel = ProfileViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
         setupStyle()
         setupConstraints()
         setupActions()
+        setupBindings()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        fetchUserProfile()
+        loadUserProfile()
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
     
@@ -219,6 +229,52 @@ class ProfileViewController: UIViewController {
         
         deleteAccountLabel.Top == ruleLabel.Bottom + 20
         deleteAccountLabel.left(20).right(20)
+
+    }
+    
+    // MARK: - Bindings
+    private func setupBindings() {
+        // Handle profile data loaded event
+        viewModel.onProfileDataLoaded = { [weak self] in
+            guard let self = self else { return }
+            self.updateUIWithProfileData()
+        }
+        
+        // Handle error event
+        viewModel.onError = { [weak self] errorMessage in
+            guard let self = self else { return }
+            print("DEBUG_DELETE_ACCOUNT: ProfileViewModel error: \(errorMessage)")
+            self.showError(errorMessage)
+        }
+        
+        // Handle logout success event
+        viewModel.onLogoutSuccess = { [weak self] in
+            guard let self = self else { return }
+            self.coordinator?.didLogout()
+        }
+        
+        // Handle account deleted event
+        viewModel.onAccountDeleted = { [weak self] in
+            guard let self = self else { return }
+            print("DEBUG_DELETE_ACCOUNT: Account deleted successfully, calling didLogout")
+            self.coordinator?.didLogout()
+        }
+    }
+    
+    // MARK: - Private Methods
+    private func loadUserProfile() {
+        viewModel.loadUserProfile()
+    }
+    
+    private func updateUIWithProfileData() {
+        nameLabel.text = viewModel.getFormattedFullName()
+        emailLabel.text = viewModel.email
+    }
+    
+    private func showError(_ message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
     
     // MARK: - Actions
@@ -238,7 +294,6 @@ class ProfileViewController: UIViewController {
         let logoutTapGesture = UITapGestureRecognizer(target: self, action: #selector(logoutButtonTapped))
         logoutContainerView.addGestureRecognizer(logoutTapGesture)
         logoutContainerView.isUserInteractionEnabled = true
-        
     }
     
     @objc private func bookmarkOptionTapped() {
@@ -250,7 +305,13 @@ class ProfileViewController: UIViewController {
     }
     
     @objc private func deleteAccountOptionTapped() {
-        coordinator?.showDeleteAccountConfirmation()
+        print("DEBUG_DELETE_ACCOUNT: deleteAccountOptionTapped method called")
+        if let coordinator = coordinator {
+            print("DEBUG_DELETE_ACCOUNT: coordinator exists, calling showDeleteAccountConfirmation")
+            coordinator.showDeleteAccountConfirmation()
+        } else {
+            print("DEBUG_DELETE_ACCOUNT: ERROR - coordinator is nil")
+        }
     }
     
     @objc private func logoutButtonTapped() {
@@ -265,58 +326,6 @@ class ProfileViewController: UIViewController {
     }
     
     private func performLogout() {
-        do {
-            try Auth.auth().signOut()
-            UserSessionManager.shared.userDidLogout()
-            UserDefaults.standard.set(false, forKey: "isUserLoggedIn")
-            coordinator?.didLogout()
-            
-        } catch {
-            print("ERROR - ProfileViewController: Failed to sign out: \(error.localizedDescription)")
-            
-            let alert = UIAlertController(title: "Error",
-                                          message: "Failed to logout. Please try again.",
-                                          preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-        }
-    }
-    
-    // MARK: - Data Fetching
-    private func fetchUserProfile() {
-        guard let currentUser = Auth.auth().currentUser else {
-            DispatchQueue.main.async {
-                self.nameLabel.text = "Not signed in"
-                self.emailLabel.text = "Please sign in to continue"
-                self.avatarImageView.image = UIImage(named: "default")
-            }
-            return
-        }
-        
-        let uid = currentUser.uid
-        DispatchQueue.main.async {
-            self.emailLabel.text = currentUser.email
-        }
-        
-        firestoreManager.getUserByUID(uid: uid) { [weak self] userData, error in
-            guard let self = self else { return }
-            
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("DEBUG - ProfileViewController: Error fetching user profile: \(error.localizedDescription)")
-                    self.nameLabel.text = "Error loading profile"
-                    return
-                }
-                
-                if let userData = userData {
-                    let firstName = userData["firstName"] as? String ?? ""
-                    let lastName = userData["lastName"] as? String ?? ""
-                    self.nameLabel.text = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespacesAndNewlines)
-                } else {
-                    print("DEBUG - ProfileViewController: No user profile data found in Firestore for UID: \(uid)")
-                    self.nameLabel.text = "Profile Incomplete"
-                }
-            }
-        }
+        viewModel.logout()
     }
 }

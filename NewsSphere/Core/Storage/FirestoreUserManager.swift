@@ -70,14 +70,14 @@ class FirestoreUserManager {
     
     // Delete user data from Firestore
     func deleteUserData(uid: String, completion: @escaping (Error?) -> Void) {
-        print("DEBUG - FirestoreUserManager: Attempting to delete user data for UID: \(uid)")
+        print("DEBUG_DELETE_ACCOUNT: FirestoreUserManager.deleteUserData called for UID: \(uid)")
         
         db.collection(usersCollection).document(uid).delete { error in
             if let error = error {
-                print("DEBUG - FirestoreUserManager: Error deleting user data: \(error.localizedDescription)")
+                print("DEBUG_DELETE_ACCOUNT: Error deleting user data from Firestore: \(error.localizedDescription)")
                 completion(error)
             } else {
-                print("DEBUG - FirestoreUserManager: User data deleted successfully for UID: \(uid)")
+                print("DEBUG_DELETE_ACCOUNT: User data deleted successfully from Firestore")
                 completion(nil)
             }
         }

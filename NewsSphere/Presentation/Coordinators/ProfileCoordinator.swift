@@ -65,8 +65,14 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
     }
     
     func showDeleteAccountConfirmation() {
-        guard let topViewController = navigationController.topViewController else { return }
+        print("DEBUG_DELETE_ACCOUNT: showDeleteAccountConfirmation called")
         
+        guard let profileViewController = findProfileViewController() else {
+            print("DEBUG_DELETE_ACCOUNT: Could not find ProfileViewController, cannot show confirmation")
+            return
+        }
+        
+        print("DEBUG_DELETE_ACCOUNT: Creating initial confirmation alert")
         let alert = UIAlertController(
             title: "Delete Account",
             message: "Are you sure you want to delete your account? This action cannot be undone and all your data will be lost.",
@@ -75,105 +81,60 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            print("DEBUG_DELETE_ACCOUNT: User confirmed deletion, showing password prompt")
             self?.showPasswordConfirmation()
         })
         
-        topViewController.present(alert, animated: true)
+        print("DEBUG_DELETE_ACCOUNT: Presenting confirmation alert")
+        profileViewController.present(alert, animated: true)
     }
     
     private func showPasswordConfirmation() {
-        guard let topViewController = navigationController.topViewController,
-              let currentUser = Auth.auth().currentUser,
-              let email = currentUser.email else { return }
+        print("DEBUG_DELETE_ACCOUNT: showPasswordConfirmation started")
         
+        guard let profileViewController = findProfileViewController() else {
+            print("DEBUG_DELETE_ACCOUNT: Could not find ProfileViewController, cannot show password confirmation")
+            return
+        }
+        
+        print("DEBUG_DELETE_ACCOUNT: Creating password confirmation alert")
         let alert = UIAlertController(
             title: "Confirm Password",
             message: "Please enter your password to delete your account",
             preferredStyle: .alert
         )
         
+        print("DEBUG_DELETE_ACCOUNT: Adding text field to alert")
         alert.addTextField { textField in
             textField.placeholder = "Password"
             textField.isSecureTextEntry = true
         }
         
+        print("DEBUG_DELETE_ACCOUNT: Adding actions to alert")
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Confirm", style: .destructive) { [weak self, weak alert] _ in
-            guard let self = self,
-                  let password = alert?.textFields?.first?.text,
-                  !password.isEmpty else { return }
+            print("DEBUG_DELETE_ACCOUNT: Confirm button pressed")
             
-            self.deleteUserAccount(email: email, password: password) { result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success:
-                        self.showDeletionSuccessAlert()
-                    case .failure(let error):
-                        self.showErrorAlert(message: error.localizedDescription)
-                    }
-                }
+            guard let password = alert?.textFields?.first?.text else {
+                print("DEBUG_DELETE_ACCOUNT: Password from alert is nil")
+                return
             }
+            
+            print("DEBUG_DELETE_ACCOUNT: Password entered: '\(password)'")
+            
+            guard !password.isEmpty else {
+                print("DEBUG_DELETE_ACCOUNT: Password is empty, returning without deletion")
+                return
+            }
+            
+            print("DEBUG_DELETE_ACCOUNT: About to call viewModel.deleteAccount with password")
+            profileViewController.viewModel.deleteAccount(password: password)
+            print("DEBUG_DELETE_ACCOUNT: Called viewModel.deleteAccount")
         })
         
-        topViewController.present(alert, animated: true)
-    }
-    
-    private func deleteUserAccount(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let currentUser = Auth.auth().currentUser else {
-            completion(.failure(NSError(domain: "com.newssphere", code: 1001, userInfo: [NSLocalizedDescriptionKey: "No user is currently signed in"])))
-            return
-        }
-        
-        // Create credential for re-authentication
-        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
-        
-        // Re-authenticate the user
-        currentUser.reauthenticate(with: credential) { [weak self] _, error in
-            guard let self = self else { return }
-            
-            if let error = error {
-                print("DEBUG - ProfileCoordinator: Re-authentication failed: \(error.localizedDescription)")
-                completion(.failure(error))
-                return
-            }
-            
-            // Re-authentication successful, proceed with deletion
-            self.performUserDeletion(completion: completion)
-        }
-    }
-    
-    private func performUserDeletion(completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let currentUser = Auth.auth().currentUser,
-              let userID = currentUser.uid as String? else {
-            completion(.failure(NSError(domain: "com.newssphere", code: 1002, userInfo: [NSLocalizedDescriptionKey: "Failed to get current user ID"])))
-            return
-        }
-        
-        // 1. Delete user data from Firestore
-        FirestoreUserManager.shared.deleteUserData(uid: userID) { [weak self] error in
-            guard let self = self else { return }
-            
-            if let error = error {
-                print("DEBUG - ProfileCoordinator: Failed to delete Firestore data: \(error.localizedDescription)")
-                completion(.failure(error))
-                return
-            }
-            
-            // 2. Delete user account from Firebase Auth
-            currentUser.delete { error in
-                if let error = error {
-                    print("DEBUG - ProfileCoordinator: Failed to delete Firebase Auth account: \(error.localizedDescription)")
-                    completion(.failure(error))
-                    return
-                }
-                
-                // 3. Clean up local Realm data
-                UserSessionManager.shared.userDidLogout()
-                
-                // 4. Return success
-                print("DEBUG - ProfileCoordinator: User account deleted successfully")
-                completion(.success(()))
-            }
+        print("DEBUG_DELETE_ACCOUNT: About to present password confirmation alert")
+        profileViewController.present(alert, animated: true) {
+            print("DEBUG_DELETE_ACCOUNT: Password confirmation alert presented")
         }
     }
     
@@ -218,5 +179,36 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
     
     func didFinish() {
         parentCoordinator?.childDidFinish(self)
+    }
+    
+    private func findProfileViewController() -> ProfileViewController? {
+        print("DEBUG_DELETE_ACCOUNT: Finding ProfileViewController")
+        
+        if let topViewController = navigationController.topViewController {
+            print("DEBUG_DELETE_ACCOUNT: Top view controller is: \(type(of: topViewController))")
+            
+            // Check if it's directly a ProfileViewController
+            if let profileVC = topViewController as? ProfileViewController {
+                print("DEBUG_DELETE_ACCOUNT: Top view controller is ProfileViewController")
+                return profileVC
+            }
+            
+            // Check if it's MainViewController
+            if let mainVC = topViewController as? MainViewController {
+                print("DEBUG_DELETE_ACCOUNT: Top view controller is MainViewController")
+                
+                // Most reliable approach: Check all child view controllers
+                for (index, childVC) in mainVC.children.enumerated() {
+                    print("DEBUG_DELETE_ACCOUNT: Checking child[\(index)]: \(type(of: childVC))")
+                    if let profileVC = childVC as? ProfileViewController {
+                        print("DEBUG_DELETE_ACCOUNT: Found ProfileViewController as direct child at index \(index)")
+                        return profileVC
+                    }
+                }
+            }
+        }
+        
+        print("DEBUG_DELETE_ACCOUNT: ERROR - Could not find ProfileViewController")
+        return nil
     }
 }
