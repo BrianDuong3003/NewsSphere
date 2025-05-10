@@ -3,7 +3,8 @@ import Stevia
 
 class SplashScreenViewController: UIViewController {
     
-    private let logoImageView = UIImageView()
+    let logoImageView = UIImageView()
+    let appLabel = UILabel()
     private weak var coordinator: AppCoordinator?
     
     init(coordinator: AppCoordinator) {
@@ -30,6 +31,7 @@ class SplashScreenViewController: UIViewController {
     private func setupView() {
         view.subviews {
             logoImageView
+            appLabel
         }
     }
     
@@ -37,11 +39,17 @@ class SplashScreenViewController: UIViewController {
         view.backgroundColor = .black
         logoImageView.image = UIImage(named: "Logo")
         logoImageView.contentMode = .scaleAspectFit
+        
+        appLabel.text = "NewsSphere"
+        appLabel.textColor = .white
+        appLabel.font = .systemFont(ofSize: 30, weight: .bold)
+        
     }
     
     private func setupConstraints() {
-        logoImageView.centerInContainer()
-        logoImageView.width(140)
-        logoImageView.height(140)
+        logoImageView.top(281).width(150).height(150).centerHorizontally()
+        
+        appLabel.Top == logoImageView.Bottom 
+        appLabel.CenterX == logoImageView.CenterX
     }
 }
