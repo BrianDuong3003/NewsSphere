@@ -13,6 +13,7 @@ class AppCoordinator: Coordinator {
     var window: UIWindow
     var mainCoordinator: MainCoordinator?
     let navigationController = UINavigationController()
+    private var isSplashScreenShown = false
     
     init(window: UIWindow) {
         self.window = window
@@ -20,7 +21,19 @@ class AppCoordinator: Coordinator {
     
     func start() {
         window.rootViewController = navigationController
-        
+        showSplashScreen()
+        window.makeKeyAndVisible()
+    }
+    
+    private func showSplashScreen() {
+        let splashScreenVC = SplashScreenViewController(coordinator: self)
+        navigationController.setViewControllers([splashScreenVC], animated: false)
+        navigationController.setNavigationBarHidden(true, animated: false)
+    }
+    
+    func finishSplashScreen() {
+        isSplashScreenShown = true
+        // Continue to the appropriate flow based on user's login status
         if isUserLoggedIn() {
             // Check user chooses fav category or not
             if UserDefaults.standard.bool(forKey: "hasSelectedCategories") {
@@ -31,8 +44,6 @@ class AppCoordinator: Coordinator {
         } else {
             showAuthFlow()
         }
-        
-        window.makeKeyAndVisible()
     }
     
     private func isUserLoggedIn() -> Bool {
