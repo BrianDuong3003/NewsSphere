@@ -51,6 +51,17 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
         navigationController.pushViewController(readOfflineViewController, animated: true)
     }
     
+    func showEditFavoriteCategories() {
+        print("DEBUG - ProfileCoordinator: Showing edit favorite categories screen")
+        
+        let viewModel = SelectCategoriesViewModel()
+        let selectCategoriesVC = SelectCategoriesViewController(viewModel: viewModel)
+        selectCategoriesVC.mode = .edit
+        selectCategoriesVC.delegate = self
+        
+        navigationController.pushViewController(selectCategoriesVC, animated: true)
+    }
+    
     func showArticleDetail(_ article: Article, selectedCategory: String?) {
         guard let parent = parentCoordinator else {
             print("ERROR - ProfileCoordinator: parentCoordinator is nil. Cannot show article detail.")
@@ -210,5 +221,12 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
         
         print("DEBUG_DELETE_ACCOUNT: ERROR - Could not find ProfileViewController")
         return nil
+    }
+}
+
+extension ProfileCoordinator: SelectCategoriesViewControllerDelegate {
+    func didFinishSelectingCategories(didSkip: Bool) {
+        print("DEBUG - ProfileCoordinator: User completed editing favorite categories")
+        navigationController.popViewController(animated: true)
     }
 }

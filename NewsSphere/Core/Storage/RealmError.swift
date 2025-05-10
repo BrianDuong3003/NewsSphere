@@ -14,6 +14,7 @@ enum RealmError: Error {
     case invalidArticle
     case writeError(Error)
     case articleNotFound
+    case maxLimitReached
     
     var localizedDescription: String {
         switch self {
@@ -25,6 +26,8 @@ enum RealmError: Error {
             return "Database write error: \(error.localizedDescription)"
         case .articleNotFound:
             return "Article not found in database"
+        case .maxLimitReached:
+            return "Maximum number of allowed items reached"
         }
     }
 }

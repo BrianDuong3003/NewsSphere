@@ -12,14 +12,22 @@ class AppCoordinator: Coordinator {
     var childCoordinators: [Coordinator] = []
     var window: UIWindow
     var mainCoordinator: MainCoordinator?
+    let navigationController = UINavigationController()
     
     init(window: UIWindow) {
         self.window = window
     }
     
     func start() {
+        window.rootViewController = navigationController
+        
         if isUserLoggedIn() {
-            showMainFlow()
+            // Check user chooses fav category or not
+            if UserDefaults.standard.bool(forKey: "hasSelectedCategories") {
+                showMainFlow()
+            } else {
+                showSelectCategories()
+            }
         } else {
             showAuthFlow()
         }
@@ -57,6 +65,15 @@ class AppCoordinator: Coordinator {
         childCoordinators.append(coordinator)
         coordinator.start()
     }
+    
+    private func showSelectCategories() {
+        navigationController.setNavigationBarHidden(true, animated: false)
+        
+        let viewModel = SelectCategoriesViewModel()
+        let selectCategoriesVC = SelectCategoriesViewController(viewModel: viewModel)
+        selectCategoriesVC.delegate = self
+        navigationController.setViewControllers([selectCategoriesVC], animated: true)
+    }
 }
 
 extension AppCoordinator: AuthCoordinatorDelegate {
@@ -73,6 +90,19 @@ extension AppCoordinator: AuthCoordinatorDelegate {
         // Set user login state
         UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
         childCoordinators.removeAll { $0 is AuthCoordinator }
+        
+        // Check user chooses fav category or not
+        if !UserDefaults.standard.bool(forKey: "hasSelectedCategories") {
+            showSelectCategories()
+        } else {
+            showMainFlow()
+        }
+    }
+}
+
+extension AppCoordinator: SelectCategoriesViewControllerDelegate {
+    func didFinishSelectingCategories(didSkip: Bool) {
+        print("DEBUG - AppCoordinator: User did \(didSkip ? "skip" : "complete") category selection")
         showMainFlow()
     }
 }

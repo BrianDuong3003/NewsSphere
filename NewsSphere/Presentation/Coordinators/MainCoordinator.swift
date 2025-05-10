@@ -44,7 +44,11 @@ class MainCoordinator: Coordinator {
     private func createAndConfigureViewControllers() -> [UIViewController] {
         // Create HomeViewController with coordinator and ViewModel
         let repository: ArticleRepositoryProtocol = ArticleRepository()
-        let homeViewModel = HomeViewModel(articleRepository: repository)
+        let favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol = FavoriteCategoryRepository()
+        let homeViewModel = HomeViewModel(
+            articleRepository: repository,
+            favoriteCategoryRepository: favoriteCategoryRepository
+        )
         let homeVC = HomeViewController(viewModel: homeViewModel)
         let homeCoordinator = HomeCoordinator(navigationController: navigationController)
         homeVC.coordinator = homeCoordinator

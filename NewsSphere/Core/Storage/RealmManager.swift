@@ -560,4 +560,108 @@ final class RealmManager {
             return .failure(.writeError(error))
         }
     }
+    
+    // MARK: - Favorite Category Management
+    
+    // Save Fav Category
+    func saveFavoriteCategory(_ category: NewsCategoryType) -> Result<Void, RealmError> {
+        guard let realm = realm else {
+            return .failure(.realmNotInitialized)
+        }
+        
+        // limit the number of category
+        let maxCategories = 3
+        let currentCount = getFavoriteCategoriesCount()
+        
+        if currentCount >= maxCategories {
+            return .failure(.maxLimitReached)
+        }
+        
+        do {
+            let categoryObject = FavoriteCategoryObject(category: category)
+            try safeWrite { realm in
+                realm.add(categoryObject, update: .modified)
+            }
+            return .success(())
+        } catch let error as RealmError {
+            return .failure(error)
+        } catch {
+            return .failure(.writeError(error))
+        }
+    }
+    
+    // remove fav category
+    func removeFavoriteCategory(_ category: NewsCategoryType) -> Result<Void, RealmError> {
+        guard let realm = realm else {
+            return .failure(.realmNotInitialized)
+        }
+        
+        do {
+            try safeWrite { realm in
+                if let objectToDelete = realm.object(ofType: FavoriteCategoryObject.self, forPrimaryKey: category.apiValue) {
+                    realm.delete(objectToDelete)
+                }
+            }
+            return .success(())
+        } catch let error as RealmError {
+            return .failure(error)
+        } catch {
+            return .failure(.writeError(error))
+        }
+    }
+    
+    // save all fav category
+    func getAllFavoriteCategories() -> [NewsCategoryType] {
+        guard let realm = realm else { return [] }
+        
+        return queue.sync {
+            let categoryObjects = realm.objects(FavoriteCategoryObject.self)
+                .sorted(byKeyPath: "savedDate", ascending: false)
+                .freeze()
+            
+            return categoryObjects.compactMap { $0.toNewsCategoryType() }
+        }
+    }
+    
+    // check if the category has been chosen or not
+    func isFavoriteCategory(_ category: NewsCategoryType) -> Bool {
+        guard let realm = realm else { return false }
+        
+        return queue.sync {
+            return realm.object(ofType: FavoriteCategoryObject.self, forPrimaryKey: category.apiValue) != nil
+        }
+    }
+    
+    // delete all fav category
+    func clearAllFavoriteCategories() -> Result<Void, RealmError> {
+        guard let realm = realm else {
+            return .failure(.realmNotInitialized)
+        }
+        
+        do {
+            try safeWrite { realm in
+                let categoryObjects = realm.objects(FavoriteCategoryObject.self)
+                realm.delete(categoryObjects)
+            }
+            return .success(())
+        } catch let error as RealmError {
+            return .failure(error)
+        } catch {
+            return .failure(.writeError(error))
+        }
+    }
+    
+    // get the number of fav category
+    func getFavoriteCategoriesCount() -> Int {
+        guard let realm = realm else { return 0 }
+        
+        return queue.sync {
+            return realm.objects(FavoriteCategoryObject.self).count
+        }
+    }
+    
+    // get max allowed category
+    func getMaxAllowedCategories() -> Int {
+        return 3
+    }
 }

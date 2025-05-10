@@ -18,15 +18,29 @@ class TopBarView: UIView {
     
     weak var delegate: TopBarViewDelegate?
     private var labelCategoryMap: [UILabel: NewsCategoryType] = [:]
+    private var categoryLabelMap: [String: UILabel] = [:] // map from category.apiValue to corresponding label
+    private var favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol
+    private var currentCategory: String? // store current category
+    
+    init(frame: CGRect, repository: FavoriteCategoryRepositoryProtocol = FavoriteCategoryRepository()) {
+        self.favoriteCategoryRepository = repository
+        super.init(frame: frame)
+        setupUI()
+        backgroundColor = .clear
+    }
     
     override init(frame: CGRect) {
+        self.favoriteCategoryRepository = FavoriteCategoryRepository()
         super.init(frame: frame)
         setupUI()
         backgroundColor = .clear
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        self.favoriteCategoryRepository = FavoriteCategoryRepository()
+        super.init(coder: coder)
+        setupUI()
+        backgroundColor = .clear
     }
     
     private func setupLabel(selectedTitle: UILabel) {
@@ -40,6 +54,72 @@ class TopBarView: UIView {
         selectedTitle.addGestureRecognizer(tapGesture)
         stackView.addArrangedSubview(selectedTitle)
         labels.append(selectedTitle)
+    }
+    
+    func refreshCategories(selectCategory: String? = nil) {
+        // Save the previously selected category or use a new category
+        let categoryToSelect = selectCategory ?? currentCategory
+        
+        // delete all current label
+        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        labels.removeAll()
+        labelCategoryMap.removeAll()
+        categoryLabelMap.removeAll()
+        
+        // Get list of fav category
+        let favoriteCategories = favoriteCategoryRepository.getAllFavoriteCategories()
+        
+        let shouldShowYourNews = !favoriteCategories.isEmpty
+        
+        // add new label
+        for category in NewsCategoryType.allCases {
+            // Skip yourNews if no favorites
+            if category == .yourNews && !shouldShowYourNews {
+                continue
+            }
+            
+            let label = UILabel()
+            label.text = category.title
+            setupLabel(selectedTitle: label)
+            labelCategoryMap[label] = category
+            categoryLabelMap[category.apiValue] = label
+        }
+        
+        // If there is a category -> highlighted
+        if let categoryToSelect = categoryToSelect, let labelToHighlight = categoryLabelMap[categoryToSelect] {
+            highlightLabel(labelToHighlight)
+            scrollToLabel(labelToHighlight)
+        }
+    }
+    
+    // 2light a category
+    func selectCategory(_ category: String) {
+        guard currentCategory != category else { return }
+        
+        currentCategory = category
+        
+        // Find the label mapping to the category
+        guard let labelToHighlight = categoryLabelMap[category] else { return }
+        
+        highlightLabel(labelToHighlight)
+        scrollToLabel(labelToHighlight)
+    }
+    
+    private func highlightLabel(_ selectedLabel: UILabel) {
+        labels.forEach { label in
+            label.font = label == selectedLabel ? UIFont.boldSystemFont(ofSize: 21) :
+            UIFont.systemFont(ofSize: 14, weight: .semibold)
+            label.textColor = label == selectedLabel ? .white : .darkGray
+        }
+    }
+    
+    // logic scroll method
+    private func scrollToLabel(_ selectedLabel: UILabel) {
+        UIView.animate(withDuration: 0.4) {
+            let targetX = selectedLabel.frame.origin.x - (self.scrollView.frame.width / 2) +
+            (selectedLabel.frame.width / 2)
+            self.scrollView.setContentOffset(CGPoint(x: max(0, targetX), y: 0), animated: true)
+        }
     }
     
     private func setupUI() {
@@ -69,29 +149,21 @@ class TopBarView: UIView {
             .constraint(greaterThanOrEqualTo: scrollView.widthAnchor)
             .isActive = true
         
-        for category in NewsCategoryType.allCases {
-            let label = UILabel()
-            label.text = category.title
-            setupLabel(selectedTitle: label)
-            labelCategoryMap[label] = category
-        }
+        refreshCategories()
     }
     
     @objc private func itemTapped(_ sender: UITapGestureRecognizer) {
         guard let selectedLabel = sender.view as? UILabel,
               let selectedCategory = labelCategoryMap[selectedLabel] else { return }
         
-        labels.forEach { label in
-            label.font = label == selectedLabel ? UIFont.boldSystemFont(ofSize: 21) :
-            UIFont.systemFont(ofSize: 14, weight: .semibold)
-            label.textColor = label == selectedLabel ? .white : .darkGray
-        }
+        // update currentCategory
+        currentCategory = selectedCategory.apiValue
         
-        UIView.animate(withDuration: 0.4) {
-            let targetX = selectedLabel.frame.origin.x - (self.scrollView.frame.width / 2) +
-            (selectedLabel.frame.width / 2)
-            self.scrollView.setContentOffset(CGPoint(x: max(0, targetX), y: 0), animated: true)
-        }
+        // 2light label selected
+        highlightLabel(selectedLabel)
+        
+        // scroll to show label selected
+        scrollToLabel(selectedLabel)
         
         delegate?.topBarView(self, didSelectCategory: selectedCategory.apiValue)
     }

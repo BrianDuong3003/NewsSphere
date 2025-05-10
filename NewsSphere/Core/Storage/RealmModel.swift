@@ -106,3 +106,23 @@ class SearchHistoryObject: Object {
         return "keyword" 
     }
 }
+
+// MARK: - Favorite Category Object
+final class FavoriteCategoryObject: Object {
+    @Persisted(primaryKey: true) var apiValue: String = ""
+    @Persisted var displayName: String = ""
+    @Persisted var rawValue: String = ""
+    @Persisted var savedDate: Date = Date()
+    
+    convenience init(category: NewsCategoryType) {
+        self.init()
+        self.apiValue = category.apiValue
+        self.displayName = category.displayName
+        self.rawValue = category.rawValue
+        self.savedDate = Date()
+    }
+    
+    func toNewsCategoryType() -> NewsCategoryType? {
+        return NewsCategoryType.allCases.first(where: { $0.rawValue == self.rawValue })
+    }
+}

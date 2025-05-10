@@ -31,6 +31,11 @@ class ProfileViewController: UIViewController {
     private let readOfflineLabel = UILabel()
     private let readOfflineIconView = UIImageView()
     
+    // Favorite Categories
+    private let favoriteCategoriesOptionView = UIView()
+    private let favoriteCategoriesLabel = UILabel()
+    private let favoriteCategoriesIconView = UIImageView()
+    
     // Logout
     private let logoutLabel = UILabel()
     private let logoutIconView = UIImageView()
@@ -97,6 +102,7 @@ class ProfileViewController: UIViewController {
         
         optionsStackView.addArrangedSubview(bookmarkOptionView)
         optionsStackView.addArrangedSubview(readOfflineOptionView)
+        optionsStackView.addArrangedSubview(favoriteCategoriesOptionView)
         
         bookmarkOptionView.subviews {
             bookmarkLabel
@@ -106,6 +112,11 @@ class ProfileViewController: UIViewController {
         readOfflineOptionView.subviews {
             readOfflineLabel
             readOfflineIconView
+        }
+        
+        favoriteCategoriesOptionView.subviews {
+            favoriteCategoriesLabel
+            favoriteCategoriesIconView
         }
     }
     
@@ -173,6 +184,19 @@ class ProfileViewController: UIViewController {
         ruleLabel.font = .systemFont(ofSize: 15, weight: .medium)
         ruleLabel.textColor = .hexGrey
         ruleLabel.numberOfLines = 0
+        
+        favoriteCategoriesOptionView.backgroundColor = .hexBackGround
+        favoriteCategoriesOptionView.layer.cornerRadius = 12
+        favoriteCategoriesOptionView.layer.borderWidth = 0.3
+        favoriteCategoriesOptionView.layer.borderColor = UIColor.hexGrey.cgColor
+        
+        favoriteCategoriesLabel.text = "Favorite Categories"
+        favoriteCategoriesLabel.font = .systemFont(ofSize: 20, weight: .semibold)
+        favoriteCategoriesLabel.textColor = .white
+        
+        favoriteCategoriesIconView.image = UIImage(systemName: "star.fill")
+        favoriteCategoriesIconView.tintColor = .hexGrey
+        favoriteCategoriesIconView.contentMode = .scaleAspectFit
     }
     
     private func setupConstraints() {
@@ -194,7 +218,7 @@ class ProfileViewController: UIViewController {
         
         optionsStackView.Top == emailLabel.Bottom + 40
         optionsStackView.left(20).right(20)
-        optionsStackView.height(120)
+        optionsStackView.height(180)
         
         bookmarkLabel.centerVertically()
         bookmarkLabel.Leading == bookmarkOptionView.Leading + 16
@@ -209,6 +233,13 @@ class ProfileViewController: UIViewController {
         readOfflineIconView.centerVertically()
         readOfflineIconView.Trailing == readOfflineOptionView.Trailing - 16
         readOfflineIconView.width(24).height(24)
+        
+        favoriteCategoriesLabel.centerVertically()
+        favoriteCategoriesLabel.Leading == favoriteCategoriesOptionView.Leading + 16
+        
+        favoriteCategoriesIconView.centerVertically()
+        favoriteCategoriesIconView.Trailing == favoriteCategoriesOptionView.Trailing - 16
+        favoriteCategoriesIconView.width(24).height(24)
         
         logoutContainerView.Top == optionsStackView.Bottom + 40
         logoutContainerView.centerHorizontally()
@@ -229,7 +260,6 @@ class ProfileViewController: UIViewController {
         
         deleteAccountLabel.Top == ruleLabel.Bottom + 20
         deleteAccountLabel.left(20).right(20)
-
     }
     
     // MARK: - Bindings
@@ -294,6 +324,10 @@ class ProfileViewController: UIViewController {
         let logoutTapGesture = UITapGestureRecognizer(target: self, action: #selector(logoutButtonTapped))
         logoutContainerView.addGestureRecognizer(logoutTapGesture)
         logoutContainerView.isUserInteractionEnabled = true
+        
+        let favoriteCategoriesTapGesture = UITapGestureRecognizer(target: self, action: #selector(favoriteCategoriesTapped))
+        favoriteCategoriesOptionView.addGestureRecognizer(favoriteCategoriesTapGesture)
+        favoriteCategoriesOptionView.isUserInteractionEnabled = true
     }
     
     @objc private func bookmarkOptionTapped() {
@@ -323,6 +357,11 @@ class ProfileViewController: UIViewController {
         })
         
         present(alert, animated: true)
+    }
+    
+    @objc private func favoriteCategoriesTapped() {
+        print("DEBUG - ProfileViewController: Favorite categories tapped")
+        coordinator?.showEditFavoriteCategories()
     }
     
     private func performLogout() {

@@ -54,7 +54,7 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
     }
     
     func fetchLatestArticles(completion: @escaping (Result<[Article], Error>) -> Void) {
-        articleRepository.fetchArticles(category: "top") { [weak self] articles in
+        articleRepository.fetchArticles(category: "top", limit: nil) { [weak self] articles in
             guard let self = self else { return }
             
             if let articles = articles {

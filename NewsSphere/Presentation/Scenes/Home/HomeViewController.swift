@@ -15,16 +15,10 @@ class HomeViewController: UIViewController {
     private lazy var listButton = UIButton()
     private lazy var topView = UIView()
     private lazy var topBar = TopBarView()
-    private lazy var headlineLabel = UILabel()
     private lazy var verticalCollectionView: UICollectionView = createCollectionView(
         scrollDirection: .vertical,
         cellType: VerticalViewCell.self,
         cellIdentifier: "VerticalViewCell")
-    
-    private lazy var horizontalCollectionView: UICollectionView = createCollectionView(
-        scrollDirection: .horizontal,
-        cellType: HorizontalViewCell.self,
-        cellIdentifier: "HorizontalViewCell")
     
     private let viewModel: HomeViewModel
     var coordinator: HomeCoordinator?
@@ -56,6 +50,15 @@ class HomeViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        
+        // Update category list and 2light current category
+        topBar.refreshCategories()
+        
+        // 2light current category
+        let currentCategory = viewModel.getCurrentCategory()
+        if !currentCategory.isEmpty {
+            topBar.selectCategory(currentCategory)
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -80,19 +83,12 @@ extension HomeViewController {
             }
             topBar
             listButton
-            headlineLabel
-            horizontalCollectionView
             verticalCollectionView
         }
     }
     
     private func setupStyle() {
         view.backgroundColor = UIColor.hexBackGround
-        
-        headlineLabel.text = "Headlines"
-        headlineLabel.font = .systemFont(ofSize: 24, weight: .bold)
-        headlineLabel.textAlignment = .left
-        headlineLabel.textColor = .white
         
         logo.image = UIImage(named: "Logo")
         
@@ -128,10 +124,6 @@ extension HomeViewController {
             -8
             |-27-topBar.height(35).width(<=330)-listButton.width(20)-27-|
             12
-            |-15-headlineLabel.height(27)-|
-            20
-            |-15-horizontalCollectionView.height(175)-|
-            10
             |-15-verticalCollectionView-15-|
             20
         }
@@ -160,8 +152,6 @@ extension HomeViewController {
     private func setupCollectionViewDelegates() {
         verticalCollectionView.delegate = self
         verticalCollectionView.dataSource = self
-        horizontalCollectionView.delegate = self
-        horizontalCollectionView.dataSource = self
     }
     
     private func createCollectionView<T: UICollectionViewCell>(scrollDirection: UICollectionView.ScrollDirection, cellType: T.Type, cellIdentifier: String) -> UICollectionView {
@@ -176,52 +166,34 @@ extension HomeViewController {
         collectionView.register(cellType, forCellWithReuseIdentifier: cellIdentifier)
         return collectionView
     }
-    
 }
 
 extension HomeViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return collectionView == verticalCollectionView ?
-        viewModel.numberOfVerticalArticles() : viewModel.numberOfHorizontalArticles()
+        return viewModel.numberOfVerticalArticles()
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if collectionView == verticalCollectionView {
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "VerticalViewCell",
-                                                          for: indexPath) as? VerticalViewCell else {
-                return UICollectionViewCell()
-            }
-            if let article = viewModel.verticalArticle(at: indexPath.row) {
-                cell.configure(articles: article)
-            }
-            return cell
-        } else {
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "HorizontalViewCell",
-                                                          for: indexPath) as? HorizontalViewCell else {
-                return UICollectionViewCell()
-            }
-            if let article = viewModel.horizontalArticle(at: indexPath.row) {
-                cell.configure(articles: article)
-            }
-            return cell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "VerticalViewCell",
+                                                      for: indexPath) as? VerticalViewCell else {
+            return UICollectionViewCell()
         }
+        if let article = viewModel.verticalArticle(at: indexPath.row) {
+            cell.configure(articles: article)
+        }
+        return cell
     }
 }
 
 // MARK: - UICollectionViewDelegate, UICollectionViewDelegateFlowLayout
 extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let section: ArticleSection = (collectionView == verticalCollectionView)
-        ? .vertical : .horizontal
+        let section: ArticleSection = .vertical
         viewModel.selectArticle(from: section, at: indexPath.row)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        if collectionView == verticalCollectionView {
-            return CGSize(width: collectionView.frame.width, height: 300)
-        } else {
-            return CGSize(width: collectionView.frame.width, height: collectionView.frame.height)
-        }
+        return CGSize(width: collectionView.frame.width, height: 300)
     }
 }
 
@@ -236,7 +208,12 @@ extension HomeViewController {
         viewModel.onArticlesUpdated = { [weak self] in
             guard let self = self else { return }
             self.verticalCollectionView.reloadData()
-            self.horizontalCollectionView.reloadData()
+            
+            // 2light current category
+            let currentCategory = self.viewModel.getCurrentCategory()
+            if !currentCategory.isEmpty {
+                self.topBar.selectCategory(currentCategory)
+            }
         }
         
         // Handle errors from ViewModel
@@ -247,14 +224,14 @@ extension HomeViewController {
         
         viewModel.delegate = self
         // default (test)
-        viewModel.fetchArticles(category: "business")
+        viewModel.fetchArticles(category: "top")
     }
 }
 
 extension HomeViewController: HomeViewModelDelegate {
-    func didSelectArticle(_ article: Article) {
+    func didSelectArticle(_ article: Article, originalCategory: String?) {
         if let coordinator = coordinator {
-            let selectedCategory = viewModel.getCurrentCategory()
+            let selectedCategory = originalCategory ?? viewModel.getCurrentCategory()
             coordinator.showArticleDetail(article, selectedCategory: selectedCategory)
         } else {
             print("Coordinator is nil")

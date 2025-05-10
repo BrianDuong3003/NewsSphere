@@ -8,17 +8,23 @@
 import Foundation
 
 protocol ArticleRepositoryProtocol {
-    func fetchArticles(category: String, completion: @escaping ([Article]?) -> Void)
+    func fetchArticles(category: String, limit: Int?, completion: @escaping ([Article]?) -> Void)
     func searchArticle(query: String, completion: @escaping ([Article]?) -> Void)
 }
 
 class ArticleRepository: ArticleRepositoryProtocol {
-    func fetchArticles(category: String, completion: @escaping ([Article]?) -> Void) {
+    func fetchArticles(category: String, limit: Int? = nil, completion: @escaping ([Article]?) -> Void) {
         APIClient.shared.request(endpoint: HomeAPI(category: category),
                                  responseType: NewsResponse.self) { result in
             switch result {
             case .success(let response):
-                completion(response.results)
+                let articles = response.results ?? []
+                if let limit = limit, !articles.isEmpty {
+                    let limitedResults = Array(articles.prefix(limit))
+                    completion(limitedResults)
+                } else {
+                    completion(articles)
+                }
             case .failure(let error):
                 debugPrint("Error: \(error)")
                 completion(nil)

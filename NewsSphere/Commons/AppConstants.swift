@@ -11,7 +11,7 @@ import UIKit
 struct AppConstants {
     struct API {
         static let baseUrl = "https://newsdata.io/api/1"
-        static let accessToken = "pub_78244744ac39ba4722e456225ccb0c1f591f7"
+        static let accessToken = "pub_86016149f3b0a46a0ea78f184382814c13719"
         
         struct Endpoints {
             static let latest = "/latest"
