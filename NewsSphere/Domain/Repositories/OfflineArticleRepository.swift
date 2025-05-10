@@ -8,29 +8,55 @@
 import Foundation
 import RealmSwift
 
-
 protocol OfflineArticleRepositoryProtocol {
     func fetchLatestArticles(completion: @escaping (Result<[Article], Error>) -> Void)
     func saveArticles(_ articles: [Article], completion: @escaping (Result<Int, Error>) -> Void)
     func getAllOfflineArticles() -> [Article]
     func deleteAllOfflineArticles() -> Result<Void, Error>
     func getOfflineArticlesCount() -> Int
+    func cleanupUnusedArticles() -> Result<Int, Error>
 }
 
 class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
     private let articleRepository: ArticleRepositoryProtocol
     private let realmManager: RealmManager
+    private let mainQueue = DispatchQueue.main
     
     init(
         articleRepository: ArticleRepositoryProtocol = ArticleRepository(),
-        realmManager: RealmManager = RealmManager.shared
+        realmManager: RealmManager? = nil
     ) {
         self.articleRepository = articleRepository
-        self.realmManager = realmManager
+        // Use the provided RealmManager or get it from UserSessionManager
+        self.realmManager = realmManager ?? UserSessionManager.shared.getCurrentRealmManager() ?? {
+            print("ERROR - OfflineArticleRepository: No RealmManager available. Creating a guest one.")
+            // Handle guest/error case
+            return RealmManager(userUID: "guest")!
+        }()
+    }
+    
+    // make sure execute on main thread
+    private func ensureMainThread<T>(_ block: @escaping () -> T) -> T {
+        if Thread.isMainThread {
+            return block()
+        } else {
+            var result: T!
+            let semaphore = DispatchSemaphore(value: 0)
+            
+            mainQueue.async {
+                result = block()
+                semaphore.signal()
+            }
+            
+            semaphore.wait()
+            return result
+        }
     }
     
     func fetchLatestArticles(completion: @escaping (Result<[Article], Error>) -> Void) {
-        articleRepository.fetchArticles(category: "top") { articles in
+        articleRepository.fetchArticles(category: "top", limit: nil) { [weak self] articles in
+            guard let self = self else { return }
+            
             if let articles = articles {
                 let articlesToSave = Array(articles.prefix(10))
                 completion(.success(articlesToSave))
@@ -48,125 +74,74 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
     func saveArticles(_ articles: [Article], completion: @escaping (Result<Int, Error>) -> Void) {
         print("DEBUG - OfflineArticleRepository: Starting to save \(articles.count) articles")
         
-        // Chuyển việc xóa và lưu vào background thread
-        DispatchQueue.global(qos: .utility).async {
-            // create new instance Realm for background thread
-            do {
-                // Sử dụng cấu hình từ RealmManager chung
-                let backgroundRealm = try Realm(configuration: self.realmManager.getConfiguration())
-                
-                var savedCount = 0
-                var lastError: Error?
-                
-                // delete articles in autoreleasepool free up memory
-                autoreleasepool {
-                    do {
-                        try backgroundRealm.write {
-                            let allArticles = backgroundRealm.objects(ArticleObject.self)
-                            backgroundRealm.delete(allArticles)
-                        }
-                    } catch let error {
-                        lastError = error
-                        print("DEBUG OfflineArticleRepository: Error deleting articles: \(error.localizedDescription)")
-                    }
-                }
-                
-                // Do not continue if there is an error while deletingg
-                if lastError != nil {
-                    DispatchQueue.main.async {
-                        completion(.failure(lastError!))
-                    }
-                    return
-                }
-                
-                // Save new articles in separate autoreleasepool
-                autoreleasepool {
-                    for article in articles {
-                        do {
-                            try backgroundRealm.write {
-                                let articleObject = ArticleObject(article: article)
-                                backgroundRealm.add(articleObject, update: .modified)
-                                savedCount += 1
-                            }
-                        } catch let error {
-                            lastError = error
-                            print("DEBUG OfflineArticleRepository: Error saving article \(error.localizedDescription)")
-                        }
-                    }
-                }
-                
-                // Return result to main thread
-                DispatchQueue.main.async {
-                    if savedCount > 0 {
-                        print("DEBUG - OfflineArticleRepository: Saved \(savedCount) articles successfully")
-                        completion(.success(savedCount))
-                    } else if let error = lastError {
-                        completion(.failure(error))
-                    } else {
-                        let error = NSError(
-                            domain: "com.newssphere.offline",
-                            code: 1002,
-                            userInfo: [NSLocalizedDescriptionKey: "No articles were saved"]
-                        )
-                        completion(.failure(error))
-                    }
-                }
-            } catch let error {
-                // Handling errors when creating Realm instance
-                print("DEBUG OfflineArticleRepository: Failed to create Realm instance: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
+        // make sure execute on main thread
+        mainQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Delete all current offline articles
+            let deleteResult = self.realmManager.deleteAllOfflineArticles()
+            if case .failure(let error) = deleteResult {
+                completion(.failure(error))
+                return
+            }
+            
+            // save new articles
+            let result = self.realmManager.saveOfflineArticles(articles)
+            
+            switch result {
+            case .success(let count):
+                print("DEBUG - OfflineArticleRepository: Saved \(count) articles successfully")
+                completion(.success(count))
+            case .failure(let error):
+                print("DEBUG - OfflineArticleRepository: Failed to save articles: \(error.localizedDescription)")
+                completion(.failure(error))
             }
         }
     }
     
     func getAllOfflineArticles() -> [Article] {
-        // Always execute on main thread
-        assert(Thread.isMainThread, "Must be called from main thread")
-        
-        do {
-            let realm = try Realm(configuration: realmManager.getConfiguration())
-            let articleObjects = realm.objects(ArticleObject.self)
-                .sorted(byKeyPath: "savedDate", ascending: false)
-                .freeze() // Ensure safety
-            
-            let articles = Array(articleObjects.map { $0.toArticle() })
+        return ensureMainThread {
+            print("DEBUG - OfflineArticleRepository: Getting offline articles on thread: \(Thread.current)")
+            let articles = self.realmManager.getOfflineArticles()
             print("DEBUG - OfflineArticleRepository: Retrieved \(articles.count) offline articles")
             return articles
-        } catch let error {
-            print("DEBUG - OfflineArticleRepository: Error retrieving articles: \(error.localizedDescription)")
-            return []
         }
     }
     
     func deleteAllOfflineArticles() -> Result<Void, Error> {
-        assert(Thread.isMainThread, "Must be called from main thread")
-        print("DEBUG - OfflineArticleRepository: Deleting all offline articles")
-        
-        do {
-            let realm = try Realm(configuration: realmManager.getConfiguration())
-            try realm.write {
-                let allArticles = realm.objects(ArticleObject.self)
-                realm.delete(allArticles)
+        return ensureMainThread {
+            print("DEBUG - OfflineArticleRepository: Deleting all offline articles on thread: \(Thread.current)")
+            
+            let result = self.realmManager.deleteAllOfflineArticles()
+            
+            switch result {
+            case .success:
+                print("DEBUG - OfflineArticleRepository: Successfully deleted all articles")
+                return .success(())
+            case .failure(let error):
+                print("DEBUG - OfflineArticleRepository: Failed to delete articles: \(error.localizedDescription)")
+                return .failure(error)
             }
-            print("DEBUG - OfflineArticleRepository: Successfully deleted all articles")
-            return .success(())
-        } catch let error {
-            print("DEBUG - OfflineArticleRepository: Failed to delete articles: \(error.localizedDescription)")
-            return .failure(error)
         }
     }
     
     func getOfflineArticlesCount() -> Int {
-        do {
-            let realm = try Realm(configuration: realmManager.getConfiguration())
-            let count = realm.objects(ArticleObject.self).count
-            print("DEBUG - OfflineArticleRepository: Offline article count: \(count)")
-            return count
-        } catch {
-            print("DEBUG - OfflineArticleRepository: Error getting article count: \(error.localizedDescription)")
-            return 0
+        return ensureMainThread {
+            return self.realmManager.getOfflineArticles().count
+        }
+    }
+    
+    func cleanupUnusedArticles() -> Result<Int, Error> {
+        return ensureMainThread {
+            print("DEBUG - OfflineArticleRepository: Cleaning up unused articles on thread: \(Thread.current)")
+            let result = self.realmManager.cleanupUnusedArticles()
+            
+            switch result {
+            case .success(let count):
+                return .success(count)
+            case .failure(let error):
+                return .failure(error)
+            }
         }
     }
 }

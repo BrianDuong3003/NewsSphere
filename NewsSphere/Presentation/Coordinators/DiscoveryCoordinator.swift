@@ -11,7 +11,7 @@ import UIKit
 class DiscoveryCoordinator: Coordinator {
     var childCoordinators: [any Coordinator] = []
     let navigationController: UINavigationController
-    weak var parentCoordinator: MainCoordinator?
+    var parentCoordinator: MainCoordinator?
     
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController

@@ -6,3 +6,123 @@
 //
 
 import Foundation
+import FirebaseAuth
+
+class ProfileViewModel {
+    // MARK: - Properties
+    private let userRepository: UserRepositoryProtocol
+    
+    // Data properties
+    private(set) var firstName: String = ""
+    private(set) var lastName: String = ""
+    private(set) var email: String = ""
+    private(set) var isLoggedIn: Bool = false
+    
+    // MARK: - Binding Callbacks
+    var onProfileDataLoaded: (() -> Void)?
+    var onError: ((String) -> Void)?
+    var onLogoutSuccess: (() -> Void)?
+    var onAccountDeleted: (() -> Void)?
+    
+    // MARK: - Initialization
+    init(userRepository: UserRepositoryProtocol = UserRepository()) {
+        self.userRepository = userRepository
+        checkLoginStatus()
+    }
+    
+    // MARK: - Public Methods
+    
+    func loadUserProfile() {
+        guard isLoggedIn else {
+            onError?("Not logged in")
+            return
+        }
+        
+        userRepository.getCurrentUserProfile { [weak self] userData, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                DispatchQueue.main.async {
+                    print("DEBUG - ProfileViewModel: Error fetching profile: \(error.localizedDescription)")
+                    self.onError?("Failed to load profile: \(error.localizedDescription)")
+                }
+                return
+            }
+            
+            if let userData = userData {
+                DispatchQueue.main.async {
+                    self.updateUserData(userData)
+                    self.onProfileDataLoaded?()
+                }
+            } else {
+                DispatchQueue.main.async {
+                    print("DEBUG - ProfileViewModel: No user profile data found")
+                    self.onError?("Profile data not found")
+                }
+            }
+        }
+    }
+    
+    func logout() {
+        do {
+            try userRepository.logout()
+            isLoggedIn = false
+            onLogoutSuccess?()
+        } catch {
+            print("DEBUG - ProfileViewModel: Error logging out: \(error.localizedDescription)")
+            onError?("Failed to logout: \(error.localizedDescription)")
+        }
+    }
+    
+    func deleteAccount(password: String) {
+        print("DEBUG_DELETE_ACCOUNT: ProfileViewModel.deleteAccount called with password length: \(password.count)")
+        
+        guard isLoggedIn, !email.isEmpty else {
+            print("DEBUG_DELETE_ACCOUNT: Not logged in or email is empty. isLoggedIn: \(isLoggedIn), email: \(email)")
+            onError?("Not logged in or email is empty")
+            return
+        }
+        
+        print("DEBUG_DELETE_ACCOUNT: Calling userRepository.deleteUserAccount with email: \(email)")
+        userRepository.deleteUserAccount(email: email, password: password) { [weak self] result in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    print("DEBUG_DELETE_ACCOUNT: Account deletion successful")
+                    self.isLoggedIn = false
+                    self.onAccountDeleted?()
+                case .failure(let error):
+                    print("DEBUG_DELETE_ACCOUNT: Failed to delete account: \(error.localizedDescription)")
+                    self.onError?("Failed to delete account: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Helper Methods
+    // Format user name for display
+    func getFormattedFullName() -> String {
+        let fullName = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespacesAndNewlines)
+        return fullName.isEmpty ? "Profile Incomplete" : fullName
+    }
+    
+    // MARK: - Private Methods
+    
+    private func checkLoginStatus() {
+        isLoggedIn = Auth.auth().currentUser != nil
+        if isLoggedIn, let userEmail = Auth.auth().currentUser?.email {
+            self.email = userEmail
+        }
+    }
+    
+    private func updateUserData(_ userData: [String: Any]) {
+        firstName = userData["firstName"] as? String ?? ""
+        lastName = userData["lastName"] as? String ?? ""
+        
+        if let userEmail = userData["email"] as? String {
+            email = userEmail
+        }
+    }
+}

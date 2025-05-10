@@ -6,34 +6,50 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class AppCoordinator: Coordinator {
     var childCoordinators: [Coordinator] = []
     var window: UIWindow
     var mainCoordinator: MainCoordinator?
+    let navigationController = UINavigationController()
     
     init(window: UIWindow) {
         self.window = window
     }
     
     func start() {
-        //        if isUserLoggedIn() {
-        //            showMainFlow()
-        //        } else {
-        //            showAuthFlow()
-        //        }
-        // Test
-                showAuthFlow()
-//        showMainFlow()
+        window.rootViewController = navigationController
+        
+        if isUserLoggedIn() {
+            // Check user chooses fav category or not
+            if UserDefaults.standard.bool(forKey: "hasSelectedCategories") {
+                showMainFlow()
+            } else {
+                showSelectCategories()
+            }
+        } else {
+            showAuthFlow()
+        }
         
         window.makeKeyAndVisible()
     }
     
     private func isUserLoggedIn() -> Bool {
-        return UserDefaults.standard.bool(forKey: "isUserLoggedIn")
+        // Check if user is logged in using Firebase Auth
+        if let currentUser = Auth.auth().currentUser {
+            // Initialize the UserSessionManager with the current user
+            UserSessionManager.shared.userDidLogin(userID: currentUser.uid)
+            return true
+        }
+        return false
     }
     
-    private func showAuthFlow() {
+    func showAuthFlow() {
+        // Clean up any existing coordinators
+        childCoordinators.removeAll()
+        mainCoordinator = nil
+        
         let authCoordinator = AuthCoordinator(window: window)
         authCoordinator.delegate = self
         childCoordinators.append(authCoordinator)
@@ -41,17 +57,52 @@ class AppCoordinator: Coordinator {
     }
     
     private func showMainFlow() {
+        // Clean up any existing coordinators
+        childCoordinators.removeAll()
+        
         let coordinator = MainCoordinator(window: window)
         mainCoordinator = coordinator
         childCoordinators.append(coordinator)
         coordinator.start()
     }
+    
+    private func showSelectCategories() {
+        navigationController.setNavigationBarHidden(true, animated: false)
+        
+        let viewModel = SelectCategoriesViewModel()
+        let selectCategoriesVC = SelectCategoriesViewController(viewModel: viewModel)
+        selectCategoriesVC.delegate = self
+        navigationController.setViewControllers([selectCategoriesVC], animated: true)
+    }
 }
 
 extension AppCoordinator: AuthCoordinatorDelegate {
     func didFinishAuthentication() {
+        // Get the current user ID from Firebase Auth
+        guard let currentUser = Auth.auth().currentUser else {
+            print("ERROR - AppCoordinator: User authenticated but Firebase user is nil")
+            return
+        }
+        
+        // Initialize UserSessionManager with the logged-in user
+        UserSessionManager.shared.userDidLogin(userID: currentUser.uid)
+        
+        // Set user login state
         UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
         childCoordinators.removeAll { $0 is AuthCoordinator }
+        
+        // Check user chooses fav category or not
+        if !UserDefaults.standard.bool(forKey: "hasSelectedCategories") {
+            showSelectCategories()
+        } else {
+            showMainFlow()
+        }
+    }
+}
+
+extension AppCoordinator: SelectCategoriesViewControllerDelegate {
+    func didFinishSelectingCategories(didSkip: Bool) {
+        print("DEBUG - AppCoordinator: User did \(didSkip ? "skip" : "complete") category selection")
         showMainFlow()
     }
 }

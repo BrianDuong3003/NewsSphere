@@ -8,7 +8,8 @@ class BookmarkViewController: UIViewController {
     private lazy var tableView = UITableView()
     private var bookmarkedArticles: [Article] = []
     private lazy var backButton = UIButton()
-    var viewModel: BookmarkViewModel!
+    
+    var viewModel: BookmarkViewModel
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -16,6 +17,15 @@ class BookmarkViewController: UIViewController {
         setupStyle()
         setupConstraints()
         bindViewModel()
+    }
+    
+    init(viewModel: BookmarkViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     private func bindViewModel() {
@@ -47,7 +57,6 @@ extension BookmarkViewController {
     
     private func setupStyle() {
         view.backgroundColor = UIColor.hexBackGround
-        
         topView.backgroundColor = UIColor(.hexRed)
         
         backButton.setImage(UIImage(named: "ic_back_button"), for: .normal)
@@ -62,16 +71,19 @@ extension BookmarkViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.estimatedRowHeight = 100
+        tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.register(BookmarkTableViewCell.self,
-                      forCellReuseIdentifier: BookmarkTableViewCell.identifier)
+        tableView.register(ArticleTableViewCell.self,
+                           forCellReuseIdentifier: ArticleTableViewCell.identifierBookmark)
     }
     
     private func setupConstraints() {
         topView.top(0).leading(0).trailing(0)
-        backButton.width(24).height(24)
-        
         topView.Height == view.Height * 0.15
+        
+        backButton.Leading == topView.Leading + 20
+        backButton.Bottom == topView.Bottom - 15
+        backButton.width(30).height(30)
         
         backButton.Leading == topView.Leading + 16
         backButton.Bottom == topView.Bottom - 12
@@ -79,7 +91,7 @@ extension BookmarkViewController {
         titleLabel.CenterX == topView.CenterX
         titleLabel.CenterY == backButton.CenterY
         
-        tableView.Top == topView.Bottom
+        tableView.Top == topView.Bottom + 10
         tableView.Leading == view.Leading
         tableView.Trailing == view.Trailing
         tableView.Bottom == view.Bottom
@@ -94,15 +106,16 @@ extension BookmarkViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(
-            withIdentifier: BookmarkTableViewCell.identifier,
+            withIdentifier: ArticleTableViewCell.identifierBookmark,
             for: indexPath
-        ) as? BookmarkTableViewCell else {
+        ) as? ArticleTableViewCell else {
             return UITableViewCell()
         }
         
         if indexPath.row < viewModel.numberOfArticles() {
             let article = viewModel.article(at: indexPath.row)
-            cell.configure(with: article)
+            let timeAgo = viewModel.formatTimeAgo(from: article.pubDate)
+            cell.configure(with: article, timeAgo: timeAgo)
         }
         
         cell.backgroundColor = .clear

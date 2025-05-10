@@ -14,7 +14,6 @@ class VerticalViewCell: UICollectionViewCell {
     private lazy var titleLabel = UILabel()
     private lazy var authorImage = UIImageView()
     private lazy var authorName = UILabel()
-    private lazy var escButton = UIButton()
     // MARK: - Initializers
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -35,8 +34,7 @@ class VerticalViewCell: UICollectionViewCell {
         subviews(background,
                  authorImage,
                  authorName,
-                 titleLabel,
-                 escButton)
+                 titleLabel)
     }
     
     func setupStyle() {
@@ -61,10 +59,6 @@ class VerticalViewCell: UICollectionViewCell {
         titleLabel.font = .systemFont(ofSize: 19, weight: .bold)
         titleLabel.numberOfLines = 3
         titleLabel.lineBreakMode = .byTruncatingTail
-        
-        escButton.setImage(UIImage(systemName: "xmark"), for: .normal)
-        escButton.tintColor = .gray
-        escButton.size(15)
     }
     
     func setupConstraints() {
@@ -85,8 +79,6 @@ class VerticalViewCell: UICollectionViewCell {
         authorName.height(15)
             .Left == authorImage.Right + 8
         align(horizontally: authorImage, authorName)
-        
-        escButton.right(8)
     }
     
     func configure(articles: Article) {

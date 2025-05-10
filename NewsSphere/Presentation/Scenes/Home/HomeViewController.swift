@@ -9,32 +9,31 @@ import Stevia
 
 class HomeViewController: UIViewController {
     private lazy var logo = UIImageView()
-    private lazy var locationButton = UIButton()
+    private lazy var appLabel = UIButton()
     private lazy var downloadButton = UIButton()
     private lazy var searchButton = UIButton()
     private lazy var listButton = UIButton()
     private lazy var topView = UIView()
     private lazy var topBar = TopBarView()
-    private lazy var headlineLabel = UILabel()
     private lazy var verticalCollectionView: UICollectionView = createCollectionView(
         scrollDirection: .vertical,
         cellType: VerticalViewCell.self,
         cellIdentifier: "VerticalViewCell")
     
-    private lazy var horizontalCollectionView: UICollectionView = createCollectionView(
-        scrollDirection: .horizontal,
-        cellType: HorizontalViewCell.self,
-        cellIdentifier: "HorizontalViewCell")
-    
-    private lazy var viewModel: HomeViewModel = {
-        let repository: ArticleRepositoryProtocol = ArticleRepository()
-        return HomeViewModel(articleRepository: repository)
-    }()
-    
+    private let viewModel: HomeViewModel
     var coordinator: HomeCoordinator?
     private lazy var bookmarkRepository: BookmarkRepositoryProtocol = {
         return BookmarkRepository()
     }()
+    
+    init(viewModel: HomeViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,6 +50,15 @@ class HomeViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        
+        // Update category list and 2light current category
+        topBar.refreshCategories()
+        
+        // 2light current category
+        let currentCategory = viewModel.getCurrentCategory()
+        if !currentCategory.isEmpty {
+            topBar.selectCategory(currentCategory)
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -71,12 +79,10 @@ extension HomeViewController {
                 logo
                 searchButton
                 downloadButton
-                locationButton
+                appLabel
             }
             topBar
             listButton
-            headlineLabel
-            horizontalCollectionView
             verticalCollectionView
         }
     }
@@ -84,28 +90,22 @@ extension HomeViewController {
     private func setupStyle() {
         view.backgroundColor = UIColor.hexBackGround
         
-        headlineLabel.text = "Headlines"
-        headlineLabel.font = .systemFont(ofSize: 24, weight: .bold)
-        headlineLabel.textAlignment = .left
-        headlineLabel.textColor = .white
-        
         logo.image = UIImage(named: "Logo")
         
-        locationButton.setTitle("New York City", for: .normal)
-        locationButton.setGradientText(startColor: .hexDarkRed, endColor: .hexBrown)
-        if let titleLabel = locationButton.titleLabel {
+        appLabel.setTitle("NewsSphere", for: .normal)
+        appLabel.setGradientText(startColor: .hexDarkRed, endColor: .hexBrown)
+        if let titleLabel = appLabel.titleLabel {
             titleLabel.font = UIFont.systemFont(ofSize: 21, weight: .heavy)
         }
-        locationButton.setImage(UIImage(named: "Vector 5"), for: .normal)
-        locationButton.contentHorizontalAlignment = .center
-        locationButton.semanticContentAttribute = .forceRightToLeft
-        locationButton.addTarget(self, action: #selector(locationButtonTapped), for: .touchUpInside)
+        appLabel.contentHorizontalAlignment = .center
+        appLabel.semanticContentAttribute = .forceRightToLeft
         
         downloadButton.setImage(UIImage(named: "vtdl"), for: .normal)
         downloadButton.addTarget(self, action: #selector(downloadButtonTapped), for: .touchUpInside)
         
         searchButton.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
         searchButton.tintColor = .lightGray
+        searchButton.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
         
         listButton.setImage(UIImage(named: "list"), for: .normal)
     }
@@ -114,7 +114,7 @@ extension HomeViewController {
         topView.Top == view.safeAreaLayoutGuide.Top
         
         topView.layout {
-            |-logo - <=30-locationButton - <=22-downloadButton - <=12-searchButton-|
+            |-logo - <=30-appLabel - <=22-downloadButton - <=12-searchButton-|
         }
         
         view.layout {
@@ -122,10 +122,6 @@ extension HomeViewController {
             -8
             |-27-topBar.height(35).width(<=330)-listButton.width(20)-27-|
             12
-            |-15-headlineLabel.height(27)-|
-            20
-            |-15-horizontalCollectionView.height(175)-|
-            10
             |-15-verticalCollectionView-15-|
             20
         }
@@ -133,10 +129,10 @@ extension HomeViewController {
         logo.height(56).width(56)
     }
     
-    @objc private func locationButtonTapped() {
-        print("Location button tapped")
+    @objc private func searchButtonTapped() {
+        print("Search button tapped")
         navigationController?.setNavigationBarHidden(false, animated: true)
-        coordinator?.showLocationScreen()
+        coordinator?.showSearchScreen()
     }
     
     @objc private func downloadButtonTapped() {
@@ -148,8 +144,6 @@ extension HomeViewController {
     private func setupCollectionViewDelegates() {
         verticalCollectionView.delegate = self
         verticalCollectionView.dataSource = self
-        horizontalCollectionView.delegate = self
-        horizontalCollectionView.dataSource = self
     }
     
     private func createCollectionView<T: UICollectionViewCell>(scrollDirection: UICollectionView.ScrollDirection, cellType: T.Type, cellIdentifier: String) -> UICollectionView {
@@ -164,52 +158,34 @@ extension HomeViewController {
         collectionView.register(cellType, forCellWithReuseIdentifier: cellIdentifier)
         return collectionView
     }
-    
 }
 
 extension HomeViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return collectionView == verticalCollectionView ?
-        viewModel.numberOfVerticalArticles() : viewModel.numberOfHorizontalArticles()
+        return viewModel.numberOfVerticalArticles()
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if collectionView == verticalCollectionView {
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "VerticalViewCell",
-                                                          for: indexPath) as? VerticalViewCell else {
-                return UICollectionViewCell()
-            }
-            if let article = viewModel.verticalArticle(at: indexPath.row) {
-                cell.configure(articles: article)
-            }
-            return cell
-        } else {
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "HorizontalViewCell",
-                                                          for: indexPath) as? HorizontalViewCell else {
-                return UICollectionViewCell()
-            }
-            if let article = viewModel.horizontalArticle(at: indexPath.row) {
-                cell.configure(articles: article)
-            }
-            return cell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "VerticalViewCell",
+                                                      for: indexPath) as? VerticalViewCell else {
+            return UICollectionViewCell()
         }
+        if let article = viewModel.verticalArticle(at: indexPath.row) {
+            cell.configure(articles: article)
+        }
+        return cell
     }
 }
 
 // MARK: - UICollectionViewDelegate, UICollectionViewDelegateFlowLayout
 extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let section: ArticleSection = (collectionView == verticalCollectionView)
-        ? .vertical : .horizontal
+        let section: ArticleSection = .vertical
         viewModel.selectArticle(from: section, at: indexPath.row)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        if collectionView == verticalCollectionView {
-            return CGSize(width: collectionView.frame.width, height: 300)
-        } else {
-            return CGSize(width: collectionView.frame.width, height: collectionView.frame.height)
-        }
+        return CGSize(width: collectionView.frame.width, height: 300)
     }
 }
 
@@ -224,7 +200,12 @@ extension HomeViewController {
         viewModel.onArticlesUpdated = { [weak self] in
             guard let self = self else { return }
             self.verticalCollectionView.reloadData()
-            self.horizontalCollectionView.reloadData()
+            
+            // 2light current category
+            let currentCategory = self.viewModel.getCurrentCategory()
+            if !currentCategory.isEmpty {
+                self.topBar.selectCategory(currentCategory)
+            }
         }
         
         // Handle errors from ViewModel
@@ -235,17 +216,17 @@ extension HomeViewController {
         
         viewModel.delegate = self
         // default (test)
-        viewModel.fetchArticles(category: "business")
+        viewModel.fetchArticles(category: "top")
     }
 }
 
 extension HomeViewController: HomeViewModelDelegate {
-    func didSelectArticle(_ article: Article) {
+    func didSelectArticle(_ article: Article, originalCategory: String?) {
         if let coordinator = coordinator {
-            let selectedCategory = viewModel.getCurrentCategory()
+            let selectedCategory = originalCategory ?? viewModel.getCurrentCategory()
             coordinator.showArticleDetail(article, selectedCategory: selectedCategory)
         } else {
-            print("Coordinator is nil, using fallback navigation.")
+            print("Coordinator is nil")
         }
     }
 }

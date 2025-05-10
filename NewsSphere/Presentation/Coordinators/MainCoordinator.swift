@@ -42,8 +42,14 @@ class MainCoordinator: Coordinator {
     }
     
     private func createAndConfigureViewControllers() -> [UIViewController] {
-        // Create HomeViewController with coordinator
-        let homeVC = HomeViewController()
+        // Create HomeViewController with coordinator and ViewModel
+        let repository: ArticleRepositoryProtocol = ArticleRepository()
+        let favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol = FavoriteCategoryRepository()
+        let homeViewModel = HomeViewModel(
+            articleRepository: repository,
+            favoriteCategoryRepository: favoriteCategoryRepository
+        )
+        let homeVC = HomeViewController(viewModel: homeViewModel)
         let homeCoordinator = HomeCoordinator(navigationController: navigationController)
         homeVC.coordinator = homeCoordinator
         homeCoordinator.parentCoordinator = self
@@ -51,17 +57,19 @@ class MainCoordinator: Coordinator {
         self.homeCoordinator = homeCoordinator
         homeCoordinator.start()
         
-        // Create DiscoveryViewController with coordinator
-        let discoveryVC = DiscoveryViewController()
+        // Create DiscoveryViewController with coordinator and ViewModel
         let discoveryCoordinator = DiscoveryCoordinator(navigationController: navigationController)
+        let discoveryViewModel = DiscoveryViewModel(coordinator: discoveryCoordinator)
+        let discoveryVC = DiscoveryViewController(viewModel: discoveryViewModel)
         discoveryVC.coordinator = discoveryCoordinator
         discoveryCoordinator.parentCoordinator = self
         addChildCoordinator(discoveryCoordinator)
         self.discoveryCoordinator = discoveryCoordinator
         discoveryCoordinator.start()
         
-        // Create ProfileViewController with coordinator
-        let profileVC = ProfileViewController()
+        // Create ProfileViewController with coordinator and ViewModel
+        let profileViewModel = ProfileViewModel()
+        let profileVC = ProfileViewController(viewModel: profileViewModel)
         let profileCoordinator = ProfileCoordinator(navigationController: navigationController)
         profileVC.coordinator = profileCoordinator
         profileCoordinator.parentCoordinator = self
@@ -86,6 +94,28 @@ class MainCoordinator: Coordinator {
         }
         
         detailCoordinator.start()
+    }
+    
+    func userDidLogout() {
+        print("DEBUG - MainCoordinator: Handling user logout")
+        
+        // Clean up coordinators and resources
+        childCoordinators.removeAll()
+        
+        // Create and show the auth flow by notifying AppCoordinator
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate,
+           let appCoordinator = appDelegate.appCoordinator {
+            appCoordinator.showAuthFlow()
+        } else {
+            // Fallback 
+            let authCoordinator = AuthCoordinator(window: window)
+            authCoordinator.start() 
+        }
+    }
+    
+    func restartAuthFlow() {
+        print("DEBUG - MainCoordinator: Restarting auth flow after account deletion")
+        userDidLogout()
     }
     
     func childDidFinish(_ child: Coordinator?) {

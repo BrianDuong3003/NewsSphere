@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "ci_arrows-reload-01.png",
+      "filename" : "ic_reload_button.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "ci_arrows-reload-01@2x.png",
+      "filename" : "ic_reload_button@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "ci_arrows-reload-01@3x.png",
+      "filename" : "ic_reload_button@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

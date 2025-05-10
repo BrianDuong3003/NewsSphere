@@ -5,14 +5,12 @@
 //  Created by DUONG DONG QUAN on 27/4/25.
 //
 
-
 import Foundation
 import UIKit
 
 enum NewsCategoryType: String, CaseIterable {
-    case latestNews
     case yourNews
-    case local
+    case top
     case business
     case crime
     case domestic
@@ -27,18 +25,13 @@ enum NewsCategoryType: String, CaseIterable {
     case science
     case sports
     case technology
-    case top
     case tourism
     case world
     
     var displayName: String {
         switch self {
-        case .latestNews:
-            return "Latest News"
         case .yourNews:
             return "Your News"
-        case .local:
-            return "Local"
         default:
             return rawValue.capitalized
         }
@@ -50,8 +43,7 @@ enum NewsCategoryType: String, CaseIterable {
     
     var apiValue: String {
         switch self {
-        case .yourNews: return "general"
-        case .local: return "local"
+        case .yourNews: return "yourNews"
         case .entertainment: return "entertainment"
         case .sports: return "sports"
         case .science: return "science"
@@ -64,14 +56,11 @@ enum NewsCategoryType: String, CaseIterable {
     
     var image: UIImage {
         switch self {
-        case .latestNews:
-            return .latestNew
         case .yourNews:
 //            return UIImage(named: "general") ?? UIImage()
             return .yourNews
-        case .local:
-//            return UIImage(named: "local") ?? UIImage()
-            return .localNews
+        case .top:
+            return .top
         case .business:
             return .business
         case .crime:
@@ -100,8 +89,6 @@ enum NewsCategoryType: String, CaseIterable {
             return .sport
         case .technology:
             return .technology
-        case .top:
-            return .top
         case .tourism:
             return .tourism
         case .world:

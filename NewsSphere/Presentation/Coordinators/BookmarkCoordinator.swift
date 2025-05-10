@@ -23,8 +23,8 @@ class BookmarkCoordinator: Coordinator, BookmarkCoordinatorProtocol {
     
     // MARK: - Coordinator Methods
     func start() {
-        let viewController = BookmarkViewController()
         let viewModel = BookmarkViewModel(coordinator: self, repository: bookmarkRepository)
+        let viewController = BookmarkViewController(viewModel: viewModel)
         viewController.viewModel = viewModel
         navigationController.pushViewController(viewController, animated: true)
     }
