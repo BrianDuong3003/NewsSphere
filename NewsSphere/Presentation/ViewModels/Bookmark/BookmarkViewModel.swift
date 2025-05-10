@@ -38,11 +38,11 @@ class BookmarkViewModel {
         let components = calendar.dateComponents([.hour, .minute, .day], from: date, to: now)
         
         if let days = components.day, days > 0 {
-            return "\(days)d"
+            return "\(days)d ago"
         } else if let hours = components.hour, hours > 0 {
-            return "\(hours)h"
+            return "\(hours)h ago"
         } else if let minutes = components.minute, minutes > 0 {
-            return "\(minutes)m"
+            return "\(minutes)m ago"
         } else {
             return "Just now"
         }

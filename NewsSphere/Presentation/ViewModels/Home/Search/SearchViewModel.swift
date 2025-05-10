@@ -112,40 +112,28 @@ class SearchViewModel {
         return articles.value[index]
     }
     
-    func formatTimeAgo(for article: Article) -> String {
-        guard let pubDateString = article.pubDate else {
-            return "Unknown"
-        }
+    func formatTimeAgo(from dateString: String?) -> String {
+        guard let dateString = dateString else { return "Unknown" }
         
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        dateFormatter.timeZone = TimeZone.current
         
-        guard let articleDate = dateFormatter.date(from: pubDateString) else {
-            return "Unknown"
-        }
-        
-        let now = Date()
-        if articleDate > now {
-            return "Just now"
-        }
+        guard let date = dateFormatter.date(from: dateString) else { return dateString }
         
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.day, .hour, .minute], from: articleDate, to: now)
+        let now = Date()
+        
+        let components = calendar.dateComponents([.hour, .minute, .day], from: date, to: now)
+        
         if let days = components.day, days > 0 {
             return "\(days)d ago"
-        }
-        
-        if let hours = components.hour, hours > 0 {
+        } else if let hours = components.hour, hours > 0 {
             return "\(hours)h ago"
-        }
-        
-        if let minutes = components.minute, minutes > 0 {
+        } else if let minutes = components.minute, minutes > 0 {
             return "\(minutes)m ago"
+        } else {
+            return "Just now"
         }
-        return "Just now"
-        
     }
     
     private func saveSearchHistory(keyword: String) {

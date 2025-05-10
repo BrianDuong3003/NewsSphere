@@ -309,7 +309,7 @@ extension SearchViewController: UITableViewDataSource, UITableViewDelegate {
             }
 
             let article = viewModel.articles.value[indexPath.row]
-            let timeAgo = viewModel.formatTimeAgo(for: article)
+            let timeAgo = viewModel.formatTimeAgo(from: article.pubDate)
             cell.configure(with: article, timeAgo: timeAgo)
             return cell
         }
