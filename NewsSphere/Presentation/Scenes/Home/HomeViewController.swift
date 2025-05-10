@@ -9,7 +9,7 @@ import Stevia
 
 class HomeViewController: UIViewController {
     private lazy var logo = UIImageView()
-    private lazy var locationButton = UIButton()
+    private lazy var appLabel = UIButton()
     private lazy var downloadButton = UIButton()
     private lazy var searchButton = UIButton()
     private lazy var listButton = UIButton()
@@ -79,7 +79,7 @@ extension HomeViewController {
                 logo
                 searchButton
                 downloadButton
-                locationButton
+                appLabel
             }
             topBar
             listButton
@@ -92,15 +92,13 @@ extension HomeViewController {
         
         logo.image = UIImage(named: "Logo")
         
-        locationButton.setTitle("New York City", for: .normal)
-        locationButton.setGradientText(startColor: .hexDarkRed, endColor: .hexBrown)
-        if let titleLabel = locationButton.titleLabel {
+        appLabel.setTitle("NewsSphere", for: .normal)
+        appLabel.setGradientText(startColor: .hexDarkRed, endColor: .hexBrown)
+        if let titleLabel = appLabel.titleLabel {
             titleLabel.font = UIFont.systemFont(ofSize: 21, weight: .heavy)
         }
-        locationButton.setImage(UIImage(named: "Vector 5"), for: .normal)
-        locationButton.contentHorizontalAlignment = .center
-        locationButton.semanticContentAttribute = .forceRightToLeft
-        locationButton.addTarget(self, action: #selector(locationButtonTapped), for: .touchUpInside)
+        appLabel.contentHorizontalAlignment = .center
+        appLabel.semanticContentAttribute = .forceRightToLeft
         
         downloadButton.setImage(UIImage(named: "vtdl"), for: .normal)
         downloadButton.addTarget(self, action: #selector(downloadButtonTapped), for: .touchUpInside)
@@ -116,7 +114,7 @@ extension HomeViewController {
         topView.Top == view.safeAreaLayoutGuide.Top
         
         topView.layout {
-            |-logo - <=30-locationButton - <=22-downloadButton - <=12-searchButton-|
+            |-logo - <=30-appLabel - <=22-downloadButton - <=12-searchButton-|
         }
         
         view.layout {
@@ -129,12 +127,6 @@ extension HomeViewController {
         }
         
         logo.height(56).width(56)
-    }
-    
-    @objc private func locationButtonTapped() {
-        print("Location button tapped")
-        navigationController?.setNavigationBarHidden(false, animated: true)
-        coordinator?.showLocationScreen()
     }
     
     @objc private func searchButtonTapped() {

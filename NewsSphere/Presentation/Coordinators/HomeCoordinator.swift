@@ -29,13 +29,6 @@ class HomeCoordinator: Coordinator, ArticleNavigator {
         parent.showArticleDetail(article, category: selectedCategory)
     }
     
-    func showLocationScreen() {
-        navigationController.setNavigationBarHidden(false, animated: true)
-        let locationViewController = LocationViewController()
-        locationViewController.coordinator = self
-        navigationController.pushViewController(locationViewController, animated: true)
-    }
-    
     func showReadOfflineScreen() {
         let viewModel = ReadOfflineViewModel()
         let readOfflineViewController = ReadOfflineViewController(viewModel: viewModel)
