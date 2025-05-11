@@ -114,7 +114,7 @@ class RegisterViewController: UIViewController, UITextFieldDelegate {
         view.backgroundColor = .hexBackGround
         
         titleLabel.font = .systemFont(ofSize: 25, weight: .semibold)
-        titleLabel.textColor = .label
+        titleLabel.textColor = .white
         titleLabel.text = "Register"
         
         applyTextFieldStyle(emailTextField, placeholder: "Email")

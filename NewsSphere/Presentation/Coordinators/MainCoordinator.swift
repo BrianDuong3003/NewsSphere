@@ -15,14 +15,16 @@ class MainCoordinator: Coordinator {
     var childCoordinators: [Coordinator] = []
     var window: UIWindow
     var navigationController: UINavigationController
+    private var isAuthenticated: Bool
     
     private var homeCoordinator: HomeCoordinator?
     private var discoveryCoordinator: DiscoveryCoordinator?
     private var profileCoordinator: ProfileCoordinator?
     private var mainViewController: MainViewController?
     
-    init(window: UIWindow) {
+    init(window: UIWindow, isAuthenticated: Bool = true) {
         self.window = window
+        self.isAuthenticated = isAuthenticated
         self.navigationController = UINavigationController()
         navigationController.setNavigationBarHidden(true, animated: false)
     }
@@ -47,7 +49,8 @@ class MainCoordinator: Coordinator {
         let favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol = FavoriteCategoryRepository()
         let homeViewModel = HomeViewModel(
             articleRepository: repository,
-            favoriteCategoryRepository: favoriteCategoryRepository
+            favoriteCategoryRepository: favoriteCategoryRepository,
+            isAuthenticated: isAuthenticated
         )
         let homeVC = HomeViewController(viewModel: homeViewModel)
         let homeCoordinator = HomeCoordinator(navigationController: navigationController)
@@ -68,9 +71,9 @@ class MainCoordinator: Coordinator {
         discoveryCoordinator.start()
         
         // Create ProfileViewController with coordinator and ViewModel
-        let profileViewModel = ProfileViewModel()
+        let profileViewModel = ProfileViewModel(isAuthenticated: isAuthenticated)
         let profileVC = ProfileViewController(viewModel: profileViewModel)
-        let profileCoordinator = ProfileCoordinator(navigationController: navigationController)
+        let profileCoordinator = ProfileCoordinator(navigationController: navigationController, isAuthenticated: isAuthenticated)
         profileVC.coordinator = profileCoordinator
         profileCoordinator.parentCoordinator = self
         addChildCoordinator(profileCoordinator)

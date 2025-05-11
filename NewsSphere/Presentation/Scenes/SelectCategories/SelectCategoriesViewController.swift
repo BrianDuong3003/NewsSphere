@@ -87,7 +87,7 @@ class SelectCategoriesViewController: UIViewController {
         
         scrollView.showsVerticalScrollIndicator = false
         
-        titleLabel.text = mode == .initialSetup ? "Select favorite categories" : "Edit favorite categories"
+        titleLabel.text = mode == .initialSetup ? "Select favorite categories" : "Select favorite categories"
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 25, weight: .bold)
         

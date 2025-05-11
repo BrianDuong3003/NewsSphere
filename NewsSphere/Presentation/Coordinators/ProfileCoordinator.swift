@@ -19,16 +19,34 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
     var childCoordinators: [any Coordinator] = []
     let navigationController: UINavigationController
     var parentCoordinator: MainCoordinator?
+    private var isAuthenticated: Bool
     
-    init(navigationController: UINavigationController) {
+    init(navigationController: UINavigationController, isAuthenticated: Bool = true) {
         self.navigationController = navigationController
+        self.isAuthenticated = isAuthenticated
     }
     
     func start() {
-
+        // No implementation needed here as initialization is handled in MainCoordinator
+    }
+    
+    func navigateToLogin() {
+        guard !isAuthenticated else { return }
+        
+        // Access AppCoordinator to show the auth flow
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate,
+           let appCoordinator = appDelegate.appCoordinator {
+            appCoordinator.showAuthFlow()
+        }
     }
     
     func navigateToBookmarks() {
+        // Only allow authenticated users to access bookmarks
+        guard isAuthenticated else {
+            showAuthRequiredAlert(for: "Bookmarks")
+            return
+        }
+        
         let repository = ArticleRepository()
         let bookmarkRepository = BookmarkRepository()
         
@@ -43,6 +61,12 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
     }
     
     func navigateToReadOffline() {
+        // Only allow authenticated users to access read offline
+        guard isAuthenticated else {
+            showAuthRequiredAlert(for: "Read Offline")
+            return
+        }
+        
         let viewModel = ReadOfflineViewModel()
         let readOfflineViewController = ReadOfflineViewController(viewModel: viewModel)
         
@@ -52,6 +76,12 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
     }
     
     func showEditFavoriteCategories() {
+        // Only allow authenticated users to edit favorite categories
+        guard isAuthenticated else {
+            showAuthRequiredAlert(for: "Favorite Categories")
+            return
+        }
+        
         print("DEBUG - ProfileCoordinator: Showing edit favorite categories screen")
         
         let viewModel = SelectCategoriesViewModel()
@@ -221,6 +251,23 @@ class ProfileCoordinator: Coordinator, ArticleNavigator {
         
         print("DEBUG_DELETE_ACCOUNT: ERROR - Could not find ProfileViewController")
         return nil
+    }
+    
+    private func showAuthRequiredAlert(for feature: String) {
+        guard let topViewController = navigationController.topViewController else { return }
+        
+        let alert = UIAlertController(
+            title: "Authentication Required",
+            message: "You need to log in to use the \(feature) feature.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Log In", style: .default) { [weak self] _ in
+            self?.navigateToLogin()
+        })
+        
+        topViewController.present(alert, animated: true)
     }
 }
 

@@ -10,6 +10,7 @@ import Foundation
 protocol ArticleRepositoryProtocol {
     func fetchArticles(category: String, limit: Int?, completion: @escaping ([Article]?) -> Void)
     func searchArticle(query: String, completion: @escaping ([Article]?) -> Void)
+    func fetchTrendingArticles(completion: @escaping ([Article]?) -> Void)
 }
 
 class ArticleRepository: ArticleRepositoryProtocol {
@@ -43,5 +44,11 @@ class ArticleRepository: ArticleRepositoryProtocol {
                 completion(nil)
             }
         }
+    }
+    
+    func fetchTrendingArticles(completion: @escaping ([Article]?) -> Void) {
+        // Sử dụng danh mục "top" hoặc "trending" để lấy tin tức xu hướng
+        // Có thể thay đổi tùy theo API thực tế
+        fetchArticles(category: "top", limit: 10, completion: completion)
     }
 }

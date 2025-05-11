@@ -209,14 +209,14 @@ extension HomeViewController {
         }
         
         // Handle errors from ViewModel
-        viewModel.onErrorOccurred = { [weak self] errorMessage in
+        viewModel.onError = { [weak self] errorMessage in
             guard let self = self else { return }
             self.showErrorAlert(message: errorMessage)
         }
         
         viewModel.delegate = self
-        // default (test)
-        viewModel.fetchArticles(category: "top")
+        // Tải nội dung phù hợp dựa trên trạng thái xác thực của người dùng
+        viewModel.loadContent()
     }
 }
 

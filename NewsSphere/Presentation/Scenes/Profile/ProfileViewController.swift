@@ -70,6 +70,7 @@ class ProfileViewController: UIViewController {
         super.viewWillAppear(animated)
         loadUserProfile()
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        updateUIBasedOnAuthState()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -124,7 +125,7 @@ class ProfileViewController: UIViewController {
         view.backgroundColor = .hexBackGround
         title = "Profile"
         
-        avatarImageView.backgroundColor = .lightGray
+        avatarImageView.backgroundColor = .hexBackGround
         avatarImageView.contentMode = .scaleAspectFill
         avatarImageView.clipsToBounds = true
         avatarImageView.image = UIImage(named: "default")
@@ -264,30 +265,22 @@ class ProfileViewController: UIViewController {
     
     // MARK: - Bindings
     private func setupBindings() {
-        // Handle profile data loaded event
         viewModel.onProfileDataLoaded = { [weak self] in
-            guard let self = self else { return }
-            self.updateUIWithProfileData()
+            self?.updateUIWithUserData()
         }
         
-        // Handle error event
         viewModel.onError = { [weak self] errorMessage in
-            guard let self = self else { return }
-            print("DEBUG_DELETE_ACCOUNT: ProfileViewModel error: \(errorMessage)")
-            self.showError(errorMessage)
+            // Show error message to user
+            print("DEBUG - ProfileViewController: Error: \(errorMessage)")
         }
         
-        // Handle logout success event
         viewModel.onLogoutSuccess = { [weak self] in
-            guard let self = self else { return }
-            self.coordinator?.didLogout()
+            self?.coordinator?.didLogout()
         }
         
-        // Handle account deleted event
         viewModel.onAccountDeleted = { [weak self] in
-            guard let self = self else { return }
-            print("DEBUG_DELETE_ACCOUNT: Account deleted successfully, calling didLogout")
-            self.coordinator?.didLogout()
+            print("DEBUG_DELETE_ACCOUNT: Account deleted callback received in ProfileViewController")
+            self?.coordinator?.didLogout()
         }
     }
     
@@ -296,49 +289,82 @@ class ProfileViewController: UIViewController {
         viewModel.loadUserProfile()
     }
     
-    private func updateUIWithProfileData() {
+    private func updateUIWithUserData() {
         nameLabel.text = viewModel.getFormattedFullName()
-        emailLabel.text = viewModel.email
+        emailLabel.text = viewModel.getDisplayEmail()
+        
+        // Update auth button text
+        logoutLabel.text = viewModel.getAuthButtonText()
+        
+        updateUIBasedOnAuthState()
     }
     
-    private func showError(_ message: String) {
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+    private func updateUIBasedOnAuthState() {
+        // Show/hide elements based on authentication state
+        favoriteCategoriesOptionView.isHidden = !viewModel.canAccessFavoriteCategories()
+        bookmarkOptionView.isHidden = !viewModel.canAccessBookmarks()
+        readOfflineOptionView.isHidden = !viewModel.canAccessReadOffline()
+        deleteAccountLabel.isHidden = !viewModel.shouldShowDeleteAccount()
+        
+        // Update logout/login button appearance
+        if viewModel.shouldShowLogout() {
+            logoutLabel.text = "Logout"
+            logoutLabel.textColor = .hexExRed
+            logoutIconView.tintColor = .hexExRed
+        } else {
+            logoutLabel.text = "Login"
+            logoutLabel.textColor = .hexOrange
+            logoutIconView.image = UIImage(systemName: "person.circle.fill")
+            logoutIconView.tintColor = .hexOrange
+        }
+        
+        // Adjust stack view spacing based on what's visible
+        optionsStackView.arrangedSubviews.forEach { view in
+            view.isHidden = view.isHidden // Trigger layout update
+        }
     }
     
     // MARK: - Actions
     private func setupActions() {
-        let bookmarkTapGesture = UITapGestureRecognizer(target: self, action: #selector(bookmarkOptionTapped))
-        bookmarkOptionView.addGestureRecognizer(bookmarkTapGesture)
-        bookmarkOptionView.isUserInteractionEnabled = true
+        let bookmarkGesture = UITapGestureRecognizer(target: self, action: #selector(bookmarkTapped))
+        bookmarkOptionView.addGestureRecognizer(bookmarkGesture)
         
-        let readOfflineTapGesture = UITapGestureRecognizer(target: self, action: #selector(readOfflineOptionTapped))
-        readOfflineOptionView.addGestureRecognizer(readOfflineTapGesture)
-        readOfflineOptionView.isUserInteractionEnabled = true
+        let readOfflineGesture = UITapGestureRecognizer(target: self, action: #selector(readOfflineTapped))
+        readOfflineOptionView.addGestureRecognizer(readOfflineGesture)
         
-        let deleteAccountTapGesture = UITapGestureRecognizer(target: self, action: #selector(deleteAccountOptionTapped))
-        deleteAccountLabel.addGestureRecognizer(deleteAccountTapGesture)
+        let favoriteCategoriesGesture = UITapGestureRecognizer(target: self, action: #selector(favoriteCategoriesTapped))
+        favoriteCategoriesOptionView.addGestureRecognizer(favoriteCategoriesGesture)
+        
+        let logoutGesture = UITapGestureRecognizer(target: self, action: #selector(logoutTapped))
+        logoutContainerView.addGestureRecognizer(logoutGesture)
+        
+        let deleteAccountGesture = UITapGestureRecognizer(target: self, action: #selector(deleteAccountTapped))
+        deleteAccountLabel.addGestureRecognizer(deleteAccountGesture)
         deleteAccountLabel.isUserInteractionEnabled = true
-        
-        let logoutTapGesture = UITapGestureRecognizer(target: self, action: #selector(logoutButtonTapped))
-        logoutContainerView.addGestureRecognizer(logoutTapGesture)
-        logoutContainerView.isUserInteractionEnabled = true
-        
-        let favoriteCategoriesTapGesture = UITapGestureRecognizer(target: self, action: #selector(favoriteCategoriesTapped))
-        favoriteCategoriesOptionView.addGestureRecognizer(favoriteCategoriesTapGesture)
-        favoriteCategoriesOptionView.isUserInteractionEnabled = true
     }
     
-    @objc private func bookmarkOptionTapped() {
+    @objc private func bookmarkTapped() {
         coordinator?.navigateToBookmarks()
     }
     
-    @objc private func readOfflineOptionTapped() {
+    @objc private func readOfflineTapped() {
         coordinator?.navigateToReadOffline()
     }
     
-    @objc private func deleteAccountOptionTapped() {
+    @objc private func favoriteCategoriesTapped() {
+        coordinator?.showEditFavoriteCategories()
+    }
+    
+    @objc private func logoutTapped() {
+        if viewModel.shouldShowLogout() {
+            viewModel.logout()
+        } else {
+            // If not authenticated, navigate to login screen
+            coordinator?.navigateToLogin()
+        }
+    }
+    
+    @objc private func deleteAccountTapped() {
         print("DEBUG_DELETE_ACCOUNT: deleteAccountOptionTapped method called")
         if let coordinator = coordinator {
             print("DEBUG_DELETE_ACCOUNT: coordinator exists, calling showDeleteAccountConfirmation")
@@ -346,25 +372,5 @@ class ProfileViewController: UIViewController {
         } else {
             print("DEBUG_DELETE_ACCOUNT: ERROR - coordinator is nil")
         }
-    }
-    
-    @objc private func logoutButtonTapped() {
-        let alert = UIAlertController(title: "Logout", message: "Are you sure you want to logout?", preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Logout", style: .destructive) { [weak self] _ in
-            self?.performLogout()
-        })
-        
-        present(alert, animated: true)
-    }
-    
-    @objc private func favoriteCategoriesTapped() {
-        print("DEBUG - ProfileViewController: Favorite categories tapped")
-        coordinator?.showEditFavoriteCategories()
-    }
-    
-    private func performLogout() {
-        viewModel.logout()
     }
 }

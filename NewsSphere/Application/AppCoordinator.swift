@@ -42,7 +42,8 @@ class AppCoordinator: Coordinator {
                 showSelectCategories()
             }
         } else {
-            showAuthFlow()
+            // Show guest flow instead of auth flow for unauthenticated users
+            showGuestFlow()
         }
     }
     
@@ -67,14 +68,19 @@ class AppCoordinator: Coordinator {
         authCoordinator.start()
     }
     
-    private func showMainFlow() {
+    private func showMainFlow(isAuthenticated: Bool = true) {
         // Clean up any existing coordinators
         childCoordinators.removeAll()
         
-        let coordinator = MainCoordinator(window: window)
+        let coordinator = MainCoordinator(window: window, isAuthenticated: isAuthenticated)
         mainCoordinator = coordinator
         childCoordinators.append(coordinator)
         coordinator.start()
+    }
+    
+    private func showGuestFlow() {
+        // Show main flow with guest mode (unauthenticated)
+        showMainFlow(isAuthenticated: false)
     }
     
     private func showSelectCategories() {
