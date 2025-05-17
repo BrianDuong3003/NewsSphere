@@ -24,15 +24,48 @@ class SearchListTableViewCell: UITableViewCell {
         setupView()
         setupStyle()
         setupConstraints()
+        
+        // Add theme change observer
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(themeChanged),
+            name: ThemeManager.themeChangedNotification,
+            object: nil
+        )
+        
+        // Apply initial theme
+        updateThemeBasedUI()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        let isLightMode = ThemeManager.shared.currentTheme.isLight
+        
+        // Update text colors based on theme
+        nameSearch.textColor = isLightMode ? .black : .white
+        
+        // Update icon colors
+        iconSearch.tintColor = .secondaryTextColor
+        deleteButton.tintColor = .secondaryTextColor
+    }
+    
     func configure(with keyword: String) {
         nameSearch.text = keyword
         self.keyword = keyword
+        
+        // Apply theme after configuration
+        updateThemeBasedUI()
     }
     
     @objc private func deleteTapped() {
@@ -56,16 +89,15 @@ extension SearchListTableViewCell {
         iconSearch.image = UIImage(named: "ic_search")
         iconSearch.contentMode = .scaleAspectFit
         
-        nameSearch.textColor = .white
         nameSearch.font = .systemFont(ofSize: 14, weight: .regular)
         nameSearch.numberOfLines = 1
         nameSearch.lineBreakMode = .byTruncatingTail
         nameSearch.setContentHuggingPriority(.defaultLow, for: .horizontal)
         nameSearch.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         
-        deleteButton.setImage(UIImage(named: "ic_delete"), for: .normal)
-        deleteButton.tintColor = .gray
+        deleteButton.setImage(UIImage(systemName: "trash.fill"), for: .normal)
         deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
+        
     }
     
     private func setupConstraints() {

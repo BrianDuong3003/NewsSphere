@@ -45,11 +45,44 @@ class SearchViewController: UIViewController {
         setupStyle()
         setupConstraints()
         setupBindings()
+        
+        // Add theme change observer
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(updateThemeBasedUI))
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        updateThemeBasedUI() // Apply theme when view appears
+    }
+    
+    @objc private func updateThemeBasedUI() {
+        // Update background colors
+        view.backgroundColor = .themeBackgroundColor()
+        searchList.backgroundColor = .clear
+        resultsTableView.backgroundColor = .clear
+        
+        // Update text colors
+        historySearch.textColor = .primaryTextColor
+        noResultsLabel.textColor = .primaryTextColor
+        
+        // Update search bar appearance
+        let isLightMode = ThemeManager.shared.currentTheme.isLight
+        searchBar.barTintColor = isLightMode ? .white : .hexDarkGrey
+        searchBar.searchTextField.backgroundColor = isLightMode ? .white : .clear
+        searchBar.searchTextField.textColor = isLightMode ? .black : .white
+        searchBar.layer.borderColor = UIColor.borderColor.cgColor
+        
+        // Update loading indicator color
+        loadingIndicator.color = .primaryTextColor
+        
+        // Reload tables to update cells
+        searchList.reloadData()
+        resultsTableView.reloadData()
     }
 
     // MARK: - ViewModel Bindings
@@ -143,21 +176,20 @@ extension SearchViewController {
     }
 
     private func setupStyle() {
-        view.backgroundColor = .hexBackGround
-
-        searchBar.barTintColor = .hexDarkGrey
+        view.backgroundColor = .themeBackgroundColor()
+        title = "Search"
+        
+        // Search bar styling - will be updated in updateThemeBasedUI
         searchBar.isTranslucent = false
         searchBar.backgroundColor = .clear
-        searchBar.searchTextField.backgroundColor = .clear
-        searchBar.searchTextField.leftView?.tintColor = .hexBackGround
-        searchBar.searchTextField.textColor = .hexBackGround
         searchBar.layer.borderWidth = 1
-        searchBar.layer.borderColor = UIColor.hexGrey.cgColor
         searchBar.layer.cornerRadius = 10
         searchBar.clipsToBounds = true
         searchBar.placeholder = "Search"
         searchBar.delegate = self
 
+        // Keep red header and white text on header regardless of theme
+        viewHeader.backgroundColor = .hexRed
         titleSearch.text = "Search"
         titleSearch.textColor = .white
         titleSearch.font = .systemFont(ofSize: 24, weight: .bold)
@@ -167,13 +199,11 @@ extension SearchViewController {
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         backButton.isUserInteractionEnabled = true
 
-        viewHeader.backgroundColor = .hexRed
-
         historySearch.text = "History"
-        historySearch.textColor = .white
         historySearch.font = .systemFont(ofSize: 18, weight: .semibold)
+        // Text color will be set in updateThemeBasedUI
 
-        underlineView.backgroundColor = .darkGray
+        underlineView.backgroundColor = .borderColor
 
         searchList.showsHorizontalScrollIndicator = false
         searchList.showsVerticalScrollIndicator = false
@@ -197,15 +227,15 @@ extension SearchViewController {
         resultsTableView.register(ArticleTableViewCell.self, forCellReuseIdentifier: "SearchResultArticleCell")
         resultsTableView.isHidden = true
 
-        noResultsLabel.textColor = .white
         noResultsLabel.font = .systemFont(ofSize: 16)
         noResultsLabel.textAlignment = .center
         noResultsLabel.numberOfLines = 0
         noResultsLabel.isHidden = true
+        // Text color will be set in updateThemeBasedUI
 
-        loadingIndicator.color = .white
         loadingIndicator.hidesWhenStopped = true
         loadingIndicator.isHidden = true
+        // Color will be set in updateThemeBasedUI
     }
 
     private func setupConstraints() {
