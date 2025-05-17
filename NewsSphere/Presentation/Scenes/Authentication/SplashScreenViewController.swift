@@ -36,14 +36,13 @@ class SplashScreenViewController: UIViewController {
     }
     
     private func setupStyle() {
-        view.backgroundColor = .black
+        view.backgroundColor = .themeBackgroundColor()
         logoImageView.image = UIImage(named: "Logo")
         logoImageView.contentMode = .scaleAspectFit
         
         appLabel.text = "NewsSphere"
-        appLabel.textColor = .white
+        appLabel.textColor = .primaryTextColor
         appLabel.font = .systemFont(ofSize: 30, weight: .bold)
-        
     }
     
     private func setupConstraints() {

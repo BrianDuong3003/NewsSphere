@@ -45,16 +45,18 @@ class HomeViewController: UIViewController {
         bindViewModel()
         
         navigationController?.setNavigationBarHidden(true, animated: false)
+        
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
         
-        // Update category list and 2light current category
+        // Update category list and current category
         topBar.refreshCategories()
         
-        // 2light current category
+        // Highlight current category
         let currentCategory = viewModel.getCurrentCategory()
         if !currentCategory.isEmpty {
             topBar.selectCategory(currentCategory)
@@ -63,6 +65,19 @@ class HomeViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
+    }
+    
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        view.backgroundColor = .themeBackgroundColor()
+        topBar.updateLabelColors()
     }
     
     private func showErrorAlert(message: String) {
@@ -88,7 +103,7 @@ extension HomeViewController {
     }
     
     private func setupStyle() {
-        view.backgroundColor = UIColor.hexBackGround
+        view.backgroundColor = UIColor.themeBackgroundColor()
         
         logo.image = UIImage(named: "Logo")
         
@@ -100,11 +115,14 @@ extension HomeViewController {
         appLabel.contentHorizontalAlignment = .center
         appLabel.semanticContentAttribute = .forceRightToLeft
         
-        downloadButton.setImage(UIImage(named: "vtdl"), for: .normal)
+        downloadButton.setImage(UIImage(systemName: "arrow.down.circle.fill"), for: .normal)
+        downloadButton.tintColor = .secondaryTextColor
+        downloadButton.contentMode = .scaleAspectFit
         downloadButton.addTarget(self, action: #selector(downloadButtonTapped), for: .touchUpInside)
         
         searchButton.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
-        searchButton.tintColor = .lightGray
+        searchButton.tintColor = .secondaryTextColor
+        searchButton.contentMode = .scaleAspectFit
         searchButton.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
         
         listButton.setImage(UIImage(named: "list"), for: .normal)
@@ -167,7 +185,7 @@ extension HomeViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "VerticalViewCell",
-                                                      for: indexPath) as? VerticalViewCell else {
+                                                            for: indexPath) as? VerticalViewCell else {
             return UICollectionViewCell()
         }
         if let article = viewModel.verticalArticle(at: indexPath.row) {
@@ -201,7 +219,7 @@ extension HomeViewController {
             guard let self = self else { return }
             self.verticalCollectionView.reloadData()
             
-            // 2light current category
+            // Highlight current category
             let currentCategory = self.viewModel.getCurrentCategory()
             if !currentCategory.isEmpty {
                 self.topBar.selectCategory(currentCategory)
@@ -215,7 +233,6 @@ extension HomeViewController {
         }
         
         viewModel.delegate = self
-        // Tải nội dung phù hợp dựa trên trạng thái xác thực của người dùng
         viewModel.loadContent()
     }
 }

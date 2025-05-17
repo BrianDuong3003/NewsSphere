@@ -25,6 +25,13 @@ class MainViewController: UIViewController {
         setupStyle()
         setupConstraints()
         showViewController(at: 0)
+        
+        // Add observer for theme changes
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -35,8 +42,16 @@ class MainViewController: UIViewController {
         super.viewDidAppear(animated)
     }
     
+    // MARK: - Theme Handling
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        view.backgroundColor = .themeBackgroundColor()
+    }
+    
     // MARK: - Public Methods
-    /// Sets pre-configured view controllers - called by MainCoordinator
     func setViewControllers(_ viewControllers: [UIViewController]) {
         self.viewControllers = viewControllers
     }
@@ -50,7 +65,7 @@ class MainViewController: UIViewController {
     }
     
     private func setupStyle() {
-        view.backgroundColor = .black
+        view.backgroundColor = .themeBackgroundColor()
         customTabbar.delegate = self
     }
     

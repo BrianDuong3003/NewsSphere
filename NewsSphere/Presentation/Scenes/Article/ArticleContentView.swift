@@ -35,6 +35,18 @@ class ArticleContentView: UIView {
         setupView()
         setupStyle()
         setupConstraints()
+        
+        // Add theme change observer
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(themeChanged),
+            name: ThemeManager.themeChangedNotification,
+            object: nil
+        )
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     required init?(coder: NSCoder) {
@@ -42,6 +54,28 @@ class ArticleContentView: UIView {
         setupView()
         setupStyle()
         setupConstraints()
+        
+        // Add theme change observer
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(themeChanged),
+            name: ThemeManager.themeChangedNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func themeChanged() {
+        updateTheme()
+    }
+    
+    func updateTheme() {
+        backgroundColor = .themeBackgroundColor()
+        titleLabel.textColor = .primaryTextColor
+        descriptionLabel.textColor = .secondaryTextColor
+        sourceLabel.textColor = .secondaryTextColor
+        if let text = contentLabel.text, !text.isEmpty {
+            contentLabel.attributedText = createAttributedText(for: text, fontSize: defaultFontSize)
+        }
     }
     
     private func setupView() {
@@ -77,7 +111,8 @@ class ArticleContentView: UIView {
         
         configureImageView(with: article.imageUrl)
         
-        // Force layout update
+        updateTheme()
+        
         setNeedsLayout()
         layoutIfNeeded()
     }
@@ -85,7 +120,6 @@ class ArticleContentView: UIView {
     func updateFontSize(_ size: CGFloat) {
         defaultFontSize = size
         
-        // Update fonts
         categoryLabel.font = .systemFont(ofSize: size + 3, weight: .semibold)
         titleLabel.font = .systemFont(ofSize: size + 10, weight: .bold)
         descriptionLabel.font = .systemFont(ofSize: size, weight: .medium)
@@ -108,6 +142,7 @@ class ArticleContentView: UIView {
             if fullContent.hasSuffix("...") {
                 fullContent = String(fullContent.dropLast(3))
             }
+            contentLabel.text = fullContent // Store plain text for later use
             contentLabel.attributedText = createAttributedText(for: fullContent,
                                                                fontSize: defaultFontSize)
             contentLabel.isHidden = false
@@ -115,7 +150,8 @@ class ArticleContentView: UIView {
             // Fallback to description if content is empty
             let cleanDescription = description.replacingOccurrences(of:
                                                                         "ONLY AVAILABLE IN PAID PLANS", with: "")
-            contentLabel.attributedText = createAttributedText(for: description,
+            contentLabel.text = cleanDescription // Store plain text for later use
+            contentLabel.attributedText = createAttributedText(for: cleanDescription,
                                                                fontSize: defaultFontSize)
             contentLabel.isHidden = false
         } else {
@@ -135,7 +171,7 @@ class ArticleContentView: UIView {
             attributes: [
                 .paragraphStyle: paragraphStyle,
                 .font: UIFont.systemFont(ofSize: fontSize),
-                .foregroundColor: UIColor.white
+                .foregroundColor: UIColor.primaryTextColor
             ]
         )
     }
@@ -181,7 +217,7 @@ class ArticleContentView: UIView {
     private func showPlaceholderImage() {
         articleImageView.image = UIImage(named: "placeholder_image") ?? UIImage(systemName: "photo")
         articleImageView.contentMode = .scaleAspectFit
-        articleImageView.tintColor = .gray
+        articleImageView.tintColor = .secondaryTextColor
     }
     
     @objc private func seeFullContentTapped() {
@@ -192,14 +228,14 @@ class ArticleContentView: UIView {
 // MARK: - Setup UI
 extension ArticleContentView {
     private func setupStyle() {
-        backgroundColor = UIColor.hexBackGround
+        backgroundColor = .themeBackgroundColor()
         
         categoryLabel.text = "Phone"
         categoryLabel.textColor = UIColor(named: "hex_Orange")
         categoryLabel.font = .systemFont(ofSize: 18, weight: .semibold)
         
         titleLabel.text = "Apple's foldable iPhone is expected to save a surprisingly declining market"
-        titleLabel.textColor = .white
+        titleLabel.textColor = .primaryTextColor
         titleLabel.font = .systemFont(ofSize: 25, weight: .bold)
         titleLabel.numberOfLines = 0
         titleLabel.lineBreakMode = .byWordWrapping
@@ -210,19 +246,19 @@ extension ArticleContentView {
         articleImageView.layer.cornerRadius = 8
         
         descriptionLabel.text = "Apple's foldable iPhone"
-        descriptionLabel.textColor = UIColor(named: "hex_Grey") ?? .lightGray
+        descriptionLabel.textColor = .secondaryTextColor
         descriptionLabel.font = .systemFont(ofSize: 16, weight: .medium)
         descriptionLabel.numberOfLines = 0
         descriptionLabel.lineBreakMode = .byWordWrapping
         
         contentLabel.text = "Foldables are still in their early days"
-        contentLabel.textColor = .white
+        contentLabel.textColor = .primaryTextColor
         contentLabel.font = .systemFont(ofSize: 17)
         contentLabel.numberOfLines = 0
         contentLabel.lineBreakMode = .byWordWrapping
         
         sourceLabel.text = "By Brian Duong"
-        sourceLabel.textColor = UIColor(named: "hex_Grey") ?? .lightGray
+        sourceLabel.textColor = .secondaryTextColor
         sourceLabel.font = .systemFont(ofSize: 14, weight: .medium)
         
         seeFullContentButton.setTitle("See Full Content", for: .normal)

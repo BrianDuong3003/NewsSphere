@@ -36,7 +36,7 @@ class ProfileViewModel {
     
     func loadUserProfile() {
         guard isAuthenticated, isLoggedIn else {
-            onProfileDataLoaded?() // Still call the callback to update UI for guest mode
+            onProfileDataLoaded?() // callback to update UI for guest mode
             return
         }
         
@@ -125,6 +125,11 @@ class ProfileViewModel {
     // Check if user can see favorite categories
     func canAccessFavoriteCategories() -> Bool {
         return isAuthenticated && isLoggedIn
+    }
+    
+    // Check if user can access theme toggle - available to all users
+    func canAccessThemeToggle() -> Bool {
+        return true
     }
     
     // Check if user can see bookmarks

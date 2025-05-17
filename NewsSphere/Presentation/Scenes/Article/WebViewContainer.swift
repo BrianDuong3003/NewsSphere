@@ -17,6 +17,17 @@ class WebViewContainer: UIView {
         setupView()
         setupStyle()
         setupConstraints()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(themeChanged),
+            name: ThemeManager.themeChangedNotification,
+            object: nil
+        )
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     required init?(coder: NSCoder) {
@@ -24,6 +35,24 @@ class WebViewContainer: UIView {
         setupView()
         setupStyle()
         setupConstraints()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(themeChanged),
+            name: ThemeManager.themeChangedNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func themeChanged() {
+        updateTheme()
+    }
+    
+    func updateTheme() {
+        backgroundColor = .themeBackgroundColor()
+        webView.backgroundColor = .themeBackgroundColor()
+        
+        loadingIndicator.color = .primaryTextColor
     }
     
     private func setupView() {
@@ -34,15 +63,15 @@ class WebViewContainer: UIView {
     }
     
     private func setupStyle() {
-        backgroundColor = UIColor.hexBackGround
+        backgroundColor = .themeBackgroundColor()
         
         webView.navigationDelegate = self
-        webView.backgroundColor = UIColor.hexBackGround
+        webView.backgroundColor = .themeBackgroundColor()
         webView.contentMode = .scaleToFill
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         webView.translatesAutoresizingMaskIntoConstraints = false
         
-        loadingIndicator.color = .white
+        loadingIndicator.color = .primaryTextColor
         loadingIndicator.hidesWhenStopped = true
         loadingIndicator.center = center
     }

@@ -1,5 +1,5 @@
 //
-//  TagCollectionViewCell.swift
+//  TagCell.swift
 //  NewsSphere
 //
 //  Created by DUONG DONG QUAN on 20/3/25.
@@ -15,12 +15,18 @@ class TagCell: UICollectionViewCell {
     private let selectedBorderColor = UIColor.white.cgColor
     private let unselectedBorderColor = UIColor(white: 0.7, alpha: 1.0).cgColor
     private let borderWidth: CGFloat = 1.0
-
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
         setupStyle()
         setupConstraints()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(themeChanged), name: NSNotification.Name("ThemeChangedNotification"), object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     required init?(coder: NSCoder) {
@@ -39,7 +45,7 @@ class TagCell: UICollectionViewCell {
         contentView.layer.borderWidth = borderWidth
         
         titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        titleLabel.textColor = .white
+        titleLabel.textColor = ThemeManager.shared.currentTheme.isLight ? .black : .white
         titleLabel.textAlignment = .center
     }
     
@@ -57,9 +63,14 @@ class TagCell: UICollectionViewCell {
         updateAppearance()
     }
     
+    @objc private func themeChanged() {
+        updateAppearance()
+    }
+    
     private func updateAppearance() {
+        let isLightMode = ThemeManager.shared.currentTheme.isLight
+        
         if isTagSelected {
-            // Interface when selected
             if let startColor = UIColor(named: "hex_Brown"),
                let endColor = UIColor(named: "hex_DarkRed") {
                 setGradientBackground(startColor: startColor, endColor: endColor)
@@ -69,9 +80,9 @@ class TagCell: UICollectionViewCell {
         } else {
             // Interface when not selected
             contentView.layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
-            contentView.backgroundColor = .hexBackGround
-            titleLabel.textColor = .white
-            contentView.layer.borderColor = unselectedBorderColor
+            contentView.backgroundColor = .themeBackgroundColor()
+            titleLabel.textColor = isLightMode ? .black : .white
+            contentView.layer.borderColor = isLightMode ? UIColor.lightGray.cgColor : unselectedBorderColor
         }
     }
     

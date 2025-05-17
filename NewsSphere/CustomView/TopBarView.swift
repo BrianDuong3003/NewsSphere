@@ -27,6 +27,8 @@ class TopBarView: UIView {
         super.init(frame: frame)
         setupUI()
         backgroundColor = .clear
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(themeChanged), name: NSNotification.Name("ThemeChangedNotification"), object: nil)
     }
     
     override init(frame: CGRect) {
@@ -34,6 +36,8 @@ class TopBarView: UIView {
         super.init(frame: frame)
         setupUI()
         backgroundColor = .clear
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(themeChanged), name: NSNotification.Name("ThemeChangedNotification"), object: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -41,6 +45,33 @@ class TopBarView: UIView {
         super.init(coder: coder)
         setupUI()
         backgroundColor = .clear
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(themeChanged), name: NSNotification.Name("ThemeChangedNotification"), object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func themeChanged() {
+        updateLabelColors()
+    }
+    
+    func updateLabelColors() {
+        if let currentCategory = currentCategory, let selectedLabel = categoryLabelMap[currentCategory] {
+            labels.forEach { label in
+                if label == selectedLabel {
+                    label.textColor = ThemeManager.shared.currentTheme.isLight ? 
+                    UIColor(named: "hex_Red") ?? .red : .white
+                } else {
+                    label.textColor = ThemeManager.shared.currentTheme.isLight ? .darkGray : .darkGray
+                }
+            }
+        } else {
+            labels.forEach { label in
+                label.textColor = ThemeManager.shared.currentTheme.isLight ? .darkGray : .darkGray
+            }
+        }
     }
     
     private func setupLabel(selectedTitle: UILabel) {
@@ -92,7 +123,7 @@ class TopBarView: UIView {
         }
     }
     
-    // 2light a category
+    // Highlight a category
     func selectCategory(_ category: String) {
         guard currentCategory != category else { return }
         
@@ -109,7 +140,13 @@ class TopBarView: UIView {
         labels.forEach { label in
             label.font = label == selectedLabel ? UIFont.boldSystemFont(ofSize: 21) :
             UIFont.systemFont(ofSize: 14, weight: .semibold)
-            label.textColor = label == selectedLabel ? .white : .darkGray
+            
+            if label == selectedLabel {
+                label.textColor = ThemeManager.shared.currentTheme.isLight ? 
+                UIColor(named: "hex_Red") ?? .red : .white
+            } else {
+                label.textColor = .darkGray
+            }
         }
     }
     
@@ -159,7 +196,7 @@ class TopBarView: UIView {
         // update currentCategory
         currentCategory = selectedCategory.apiValue
         
-        // 2light label selected
+        // Highlight label selected
         highlightLabel(selectedLabel)
         
         // scroll to show label selected

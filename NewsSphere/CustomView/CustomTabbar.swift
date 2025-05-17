@@ -56,7 +56,6 @@ class CustomTabbar: UIView {
     
     private func setupStyle() {
         backgroundColor = .black
-        layer.cornerRadius = 20
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         clipsToBounds = true
     }

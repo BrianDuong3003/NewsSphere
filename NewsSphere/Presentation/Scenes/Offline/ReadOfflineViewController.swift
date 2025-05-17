@@ -28,6 +28,18 @@ class ReadOfflineViewController: UIViewController {
         setupStyle()
         setupConstraints()
         bindViewModel()
+        
+        // Add theme change observer
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateThemeBasedUI()
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
     }
     
     init(viewModel: ReadOfflineViewModel) {
@@ -37,6 +49,23 @@ class ReadOfflineViewController: UIViewController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Theme Support
+    
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        view.backgroundColor = .themeBackgroundColor()
+        articlesTableView.backgroundColor = .clear
+        
+        titleLabel.textColor = .white
+        emptyStateLabel.textColor = .primaryTextColor
+        
+        loadingIndicator.color = .primaryTextColor
+        articlesTableView.reloadData()
     }
     
     private func setupView() {
@@ -142,7 +171,7 @@ class ReadOfflineViewController: UIViewController {
 // MARK: - Setup UI
 extension ReadOfflineViewController {
     private func setupStyle() {
-        view.backgroundColor = UIColor.hexBackGround
+        view.backgroundColor = .themeBackgroundColor()
         topView.backgroundColor = UIColor.hexRed
         
         titleLabel.text = "Read Offline"
@@ -167,12 +196,12 @@ extension ReadOfflineViewController {
         articlesTableView.backgroundColor = .clear
         articlesTableView.separatorStyle = .none
         
-        loadingIndicator.color = .white
+        loadingIndicator.color = .primaryTextColor
         loadingIndicator.hidesWhenStopped = true
         
         emptyStateLabel.text = "No offline articles available.\nTap the reload button to download articles."
         emptyStateLabel.font = .systemFont(ofSize: 16)
-        emptyStateLabel.textColor = .white
+        emptyStateLabel.textColor = .primaryTextColor
         emptyStateLabel.textAlignment = .center
         emptyStateLabel.numberOfLines = 0
         

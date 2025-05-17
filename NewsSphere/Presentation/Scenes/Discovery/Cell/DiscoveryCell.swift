@@ -50,6 +50,7 @@ extension DiscoveryCell {
         horizontalDivider.Top == titleLabel.Bottom + 10
     }
     
+    
     private func setupStyle() {
         roundCorners([.allCorners], radius: 10)
         

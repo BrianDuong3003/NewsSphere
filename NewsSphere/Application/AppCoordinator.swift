@@ -20,9 +20,28 @@ class AppCoordinator: Coordinator {
     }
     
     func start() {
+        // Apply theme before showing any UI
+        applyTheme()
+        
         window.rootViewController = navigationController
         showSplashScreen()
         window.makeKeyAndVisible()
+        
+        // Add observer for theme changes
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
+    }
+    
+    @objc private func themeChanged() {
+        applyTheme()
+    }
+    
+    private func applyTheme() {
+        // Apply theme to the entire app
+        ThemeManager.shared.applyTheme()
     }
     
     private func showSplashScreen() {
@@ -33,16 +52,13 @@ class AppCoordinator: Coordinator {
     
     func finishSplashScreen() {
         isSplashScreenShown = true
-        // Continue to the appropriate flow based on user's login status
         if isUserLoggedIn() {
-            // Check user chooses fav category or not
             if UserDefaults.standard.bool(forKey: "hasSelectedCategories") {
                 showMainFlow()
             } else {
                 showSelectCategories()
             }
         } else {
-            // Show guest flow instead of auth flow for unauthenticated users
             showGuestFlow()
         }
     }

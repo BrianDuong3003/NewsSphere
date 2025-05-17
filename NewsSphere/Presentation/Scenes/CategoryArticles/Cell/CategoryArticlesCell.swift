@@ -1,5 +1,5 @@
 //
-//  PoliticsCell.swift
+//  CategoryArticlesCell.swift
 //  NewsSphere
 //
 //  Created by DUONG DONG QUAN on 7/4/25.
@@ -20,6 +20,21 @@ class CategoryArticlesCell: UICollectionViewCell {
         setupView()
         setupStyle()
         setupConstraints()
+        
+        // Add theme change observer
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(themeChanged),
+            name: ThemeManager.themeChangedNotification,
+            object: nil
+        )
+        
+        // Apply initial theme
+        updateThemeBasedUI()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func layoutSubviews() {
@@ -30,6 +45,18 @@ class CategoryArticlesCell: UICollectionViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        let isLightMode = ThemeManager.shared.currentTheme.isLight
+        
+        // Update text colors based on theme
+        titleLabel.textColor = isLightMode ? .black : .white
+        sourceName.textColor = .secondaryTextColor
     }
     
     func configure(with article: Article) {
@@ -48,6 +75,8 @@ class CategoryArticlesCell: UICollectionViewCell {
         } else {
             sourceIcon.image = UIImage(named: "placeholder_icon")
         }
+        
+        updateThemeBasedUI()
     }
 }
 
@@ -70,10 +99,8 @@ extension CategoryArticlesCell {
         sourceIcon.contentMode = .scaleAspectFill
         sourceIcon.backgroundColor = .lightGray
         
-        sourceName.textColor = .hexGrey
         sourceName.font = .systemFont(ofSize: 14, weight: .regular)
         
-        titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
         titleLabel.numberOfLines = 0
         

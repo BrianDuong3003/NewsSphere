@@ -13,7 +13,7 @@ class CategoryArticlesViewController: UIViewController {
     private lazy var mainTitleLabel = UILabel()
     private lazy var contentView = UIView()
     private lazy var backButton = UIButton()
-    private lazy var topView = UIView() 
+    private lazy var topView = UIView()
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 12
@@ -27,7 +27,6 @@ class CategoryArticlesViewController: UIViewController {
     private var articles: [Article] = []
     
     init(category: String) {
-        // Initialize ViewModel later in viewDidLoad after coordinator is set
         super.init(nibName: nil, bundle: nil)
         self.viewModel = CategoryArticlesViewModel(category: category, coordinator: self)
     }
@@ -43,6 +42,30 @@ class CategoryArticlesViewController: UIViewController {
         setupConstraints()
         setupStyle()
         fetchArticles()
+        
+        // Add theme change observer
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateThemeBasedUI()
+    }
+    
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        // Update background colors
+        view.backgroundColor = .themeBackgroundColor()
+        contentView.backgroundColor = .themeBackgroundColor()
+        
+        collectionView.reloadData()
     }
     
     @objc private func backButtonTapped() {
@@ -82,7 +105,7 @@ extension CategoryArticlesViewController {
         topView.Height == view.Height * 0.15
         
         mainTitleLabel.centerHorizontally().CenterY == backButton.CenterY
-
+        
         backButton.Leading == view.Leading + 20
         backButton.Bottom == topView.Bottom - 15
         backButton.width(30).height(30)
@@ -94,8 +117,7 @@ extension CategoryArticlesViewController {
     }
     
     private func setupStyle() {
-        
-        view.backgroundColor = .hexBackGround
+        view.backgroundColor = .themeBackgroundColor()
         topView.backgroundColor = .hexRed
         
         mainTitleLabel.text =
@@ -108,7 +130,7 @@ extension CategoryArticlesViewController {
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         backButton.tintColor = .white
         
-        contentView.backgroundColor = .hexBackGround
+        contentView.backgroundColor = .themeBackgroundColor()
         
         collectionView.backgroundColor = .clear
         collectionView.delegate = self
