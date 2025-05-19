@@ -60,14 +60,33 @@ class SearchViewModel {
             DispatchQueue.main.async {
                 self?.isLoading.value = false
                 if let articles = articles {
-                    self?.articles.value = articles
-                    self?.cacheResults(articles, for: query)
+                    // Remove duplicate articles
+                    let uniqueArticles = self?.removeDuplicateArticles(articles) ?? []
+                    self?.articles.value = uniqueArticles
+                    self?.cacheResults(uniqueArticles, for: query)
                     self?.saveSearchHistory(keyword: query)
                 } else {
                     self?.error.value = "No articles found."
                 }
             }
         }
+    }
+    
+    private func removeDuplicateArticles(_ articles: [Article]) -> [Article] {
+        var seenArticles = Set<String>()
+        var uniqueArticles: [Article] = []
+        
+        for article in articles {
+            // Create a unique identifier for the article based on title and content
+            let identifier = "\(article.title ?? "")_\(article.content ?? "")"
+            
+            if !seenArticles.contains(identifier) {
+                seenArticles.insert(identifier)
+                uniqueArticles.append(article)
+            }
+        }
+        
+        return uniqueArticles
     }
     
     private func getCachedResults(for query: String) -> [Article]? {
