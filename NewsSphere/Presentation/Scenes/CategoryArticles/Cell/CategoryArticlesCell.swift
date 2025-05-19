@@ -7,6 +7,7 @@
 
 import UIKit
 import Stevia
+import Kingfisher
 
 class CategoryArticlesCell: UICollectionViewCell {
     private lazy var picture = UIImageView()
@@ -65,13 +66,27 @@ class CategoryArticlesCell: UICollectionViewCell {
         categoryLB.text = article.category?.first?.capitalized ?? "Unknown"
         
         if let imageUrl = article.imageUrl, let url = URL(string: imageUrl) {
-            picture.sd_setImage(with: url, placeholderImage: UIImage(named: "placeholder_image"))
+            picture.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "placeholder_image"),
+                options: [
+                    .transition(.fade(0.3)),
+                    .cacheOriginalImage
+                ]
+            )
         } else {
             picture.image = UIImage(named: "placeholder_image")
         }
         
         if let iconUrl = article.sourceIcon, let url = URL(string: iconUrl) {
-            sourceIcon.sd_setImage(with: url, placeholderImage: UIImage(named: "placeholder_icon"))
+            sourceIcon.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "placeholder_icon"),
+                options: [
+                    .transition(.fade(0.3)),
+                    .cacheOriginalImage
+                ]
+            )
         } else {
             sourceIcon.image = UIImage(named: "placeholder_icon")
         }

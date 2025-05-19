@@ -7,7 +7,7 @@
 
 import UIKit
 import Stevia
-import SDWebImage
+import Kingfisher
 
 class VerticalViewCell: UICollectionViewCell {
     private lazy var background = UIImageView()
@@ -119,13 +119,27 @@ class VerticalViewCell: UICollectionViewCell {
         authorName.text = articles.sourceName
         
         if let articleImg = articles.imageUrl, let url = URL(string: articleImg) {
-            background.sd_setImage(with: url, placeholderImage: UIImage(named: "rectangle7"))
+            background.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "rectangle7"),
+                options: [
+                    .transition(.fade(0.3)),
+                    .cacheOriginalImage
+                ]
+            )
         } else {
             background.image = UIImage(named: "rectangle7")
         }
         
         if let authorImg = articles.sourceIcon, let url = URL(string: authorImg) {
-            authorImage.sd_setImage(with: url, placeholderImage: UIImage(named: "ellipse1"))
+            authorImage.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "ellipse1"),
+                options: [
+                    .transition(.fade(0.3)),
+                    .cacheOriginalImage
+                ]
+            )
         } else {
             authorImage.image = UIImage(named: "ellipse1")
         }
