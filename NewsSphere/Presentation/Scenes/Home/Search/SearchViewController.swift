@@ -357,7 +357,9 @@ extension SearchViewController: UITableViewDataSource, UITableViewDelegate {
             tableView.deselectRow(at: indexPath, animated: true)
         } else if tableView == resultsTableView {
             let selectedArticle = viewModel.articles.value[indexPath.row]
-            coordinator?.showArticleDetail(selectedArticle, selectedCategory: "Search Results")
+            // Get the original category of the article if available
+            let originalCategory = viewModel.getArticleCategory(at: indexPath.row)
+            coordinator?.showArticleDetail(selectedArticle, selectedCategory: originalCategory ?? "Search Results")
             tableView.deselectRow(at: indexPath, animated: true)
         }
     }
