@@ -21,7 +21,6 @@ final class RealmManager {
     // MARK: - Initialization
     init?(userUID: String?) {
         guard let uid = userUID, !uid.isEmpty else {
-            print("DEBUG - RealmManager: Cannot initialize without a valid user UID.")
             return nil
         }
         
@@ -32,9 +31,7 @@ final class RealmManager {
         
         do {
             realm = try Realm(configuration: configuration)
-            print("DEBUG - RealmManager: Realm initialized successfully for user \(uid) at: \(String(describing: configuration.fileURL))")
         } catch {
-            print("DEBUG - RealmManager: Failed to initialize Realm: \(error.localizedDescription)")
             return nil
         }
     }
@@ -184,7 +181,9 @@ final class RealmManager {
     }
     
     func saveSearchHistory(keyword: String) {
-        guard let realm = realm else { return }
+        guard let realm = realm else {
+            return
+        }
         
         let searchHistory = SearchHistoryObject()
         searchHistory.keyword = keyword
@@ -195,17 +194,22 @@ final class RealmManager {
                 realm.add(searchHistory, update: .modified)
             }
         } catch {
-            print("Error saving search history: \(error)")
+            print("DEBUG - RealmManager: Error saving search history: \(error)")
         }
     }
     
     func getSearchHistory() -> [SearchHistoryObject] {
-        guard let realm = realm else { return [] }
+        guard let realm = realm else {
+            print("DEBUG - RealmManager: Cannot get search history - Realm is nil")
+            return []
+        }
         
+        print("DEBUG - RealmManager: Getting search history")
         return queue.sync {
             let results = realm.objects(SearchHistoryObject.self).sorted(
                 byKeyPath: "searchDate", ascending: false)
                 .freeze()
+            print("DEBUG - RealmManager: Found \(results.count) search history items")
             return Array(results)
         }
     }
