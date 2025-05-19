@@ -203,8 +203,8 @@ class RegisterViewController: UIViewController, UITextFieldDelegate {
     }
     
     private func applyTextFieldStyle(_ textField: UITextField, placeholder: String) {
-        textField.backgroundColor = .hexDarkGrey
-        textField.textColor = .hexDarkText
+        textField.backgroundColor = .white
+        textField.textColor = .black
         textField.borderStyle = .roundedRect
         textField.font = UIFont.systemFont(ofSize: 18)
         textField.attributedPlaceholder = NSAttributedString(

@@ -20,6 +20,7 @@ final class ArticleObject: Object {
     @Persisted var sourceId: String = ""
     @Persisted var sourceName: String = ""
     @Persisted var savedDate: Date = Date()
+    @Persisted var categories = List<String>()
     
     convenience init(article: Article) {
         self.init()
@@ -33,9 +34,22 @@ final class ArticleObject: Object {
         self.sourceId = article.sourceId ?? ""
         self.sourceName = article.sourceName ?? ""
         self.savedDate = Date()
+        
+        // Save categories
+        if let articleCategories = article.category {
+            articleCategories.forEach { category in
+                self.categories.append(category)
+            }
+        }
     }
     
     func toArticle() -> Article {
+        // Convert List<String> to Array
+        var categoryArray: [String]? = nil
+        if !categories.isEmpty {
+            categoryArray = Array(categories)
+        }
+        
         return Article(
             articleId: nil,
             title: title,
@@ -52,7 +66,7 @@ final class ArticleObject: Object {
             sourceUrl: nil,
             sourceIcon: nil,
             language: nil,
-            category: nil,
+            category: categoryArray,
             country: nil
         )
     }

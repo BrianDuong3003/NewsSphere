@@ -272,7 +272,8 @@ extension ReadOfflineViewController: UITableViewDelegate, UITableViewDataSource 
         
         if let article = viewModel.article(at: indexPath.row) {
             print("DEBUG - ReadOfflineViewController: Opening article: \(article.title ?? "Unknown")")
-            coordinator?.showArticleDetail(article, selectedCategory: "offline")
+            let originalCategory = viewModel.getArticleCategory(at: indexPath.row)
+            coordinator?.showArticleDetail(article, selectedCategory: originalCategory ?? "offline")
         }
     }
 }

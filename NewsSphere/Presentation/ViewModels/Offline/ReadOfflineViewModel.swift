@@ -139,6 +139,15 @@ class ReadOfflineViewModel {
         return articles[index]
     }
     
+    // MARK: - Get category for an article
+    func getArticleCategory(at index: Int) -> String? {
+        guard let article = article(at: index), let categories = article.category, !categories.isEmpty else {
+            return nil
+        }
+        // Return the first category from the article's category array
+        return categories.first
+    }
+    
     func formatTimeAgo(from dateString: String?) -> String {
         guard let dateString = dateString else { return "Unknown" }
         

@@ -21,6 +21,7 @@ class TopBarView: UIView {
     private var categoryLabelMap: [String: UILabel] = [:] // map from category.apiValue to corresponding label
     private var favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol
     private var currentCategory: String? // store current category
+    private let backgroundQueue = DispatchQueue(label: "com.newssphere.topbar", qos: .userInitiated)
     
     init(frame: CGRect, repository: FavoriteCategoryRepositoryProtocol = FavoriteCategoryRepository()) {
         self.favoriteCategoryRepository = repository
@@ -97,29 +98,34 @@ class TopBarView: UIView {
         labelCategoryMap.removeAll()
         categoryLabelMap.removeAll()
         
-        // Get list of fav category
-        let favoriteCategories = favoriteCategoryRepository.getAllFavoriteCategories()
-        
-        let shouldShowYourNews = !favoriteCategories.isEmpty
-        
-        // add new label
-        for category in NewsCategoryType.allCases {
-            // Skip yourNews if no favorites
-            if category == .yourNews && !shouldShowYourNews {
-                continue
-            }
+        // Get list of fav category on background thread
+        backgroundQueue.async { [weak self] in
+            guard let self = self else { return }
             
-            let label = UILabel()
-            label.text = category.title
-            setupLabel(selectedTitle: label)
-            labelCategoryMap[label] = category
-            categoryLabelMap[category.apiValue] = label
-        }
-        
-        // If there is a category -> highlighted
-        if let categoryToSelect = categoryToSelect, let labelToHighlight = categoryLabelMap[categoryToSelect] {
-            highlightLabel(labelToHighlight)
-            scrollToLabel(labelToHighlight)
+            let favoriteCategories = self.favoriteCategoryRepository.getAllFavoriteCategories()
+            let shouldShowYourNews = !favoriteCategories.isEmpty
+            
+            DispatchQueue.main.async {
+                // add new label
+                for category in NewsCategoryType.allCases {
+                    // Skip yourNews if no favorites
+                    if category == .yourNews && !shouldShowYourNews {
+                        continue
+                    }
+                    
+                    let label = UILabel()
+                    label.text = category.title
+                    self.setupLabel(selectedTitle: label)
+                    self.labelCategoryMap[label] = category
+                    self.categoryLabelMap[category.apiValue] = label
+                }
+                
+                // If there is a category -> highlighted
+                if let categoryToSelect = categoryToSelect, let labelToHighlight = self.categoryLabelMap[categoryToSelect] {
+                    self.highlightLabel(labelToHighlight)
+                    self.scrollToLabel(labelToHighlight)
+                }
+            }
         }
     }
     

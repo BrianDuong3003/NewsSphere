@@ -264,6 +264,7 @@ class LoginViewController: UIViewController {
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
         textField.leftViewMode = .always
         textField.backgroundColor = .white
+        textField.textColor = .black
         textField.layer.cornerRadius = 10
         textField.attributedPlaceholder = NSAttributedString(
             string: placeholder,
