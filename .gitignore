@@ -45,3 +45,5 @@ build/
 *.tmp
 *.bak
 *.xcuserstate
+
+memory-bank/

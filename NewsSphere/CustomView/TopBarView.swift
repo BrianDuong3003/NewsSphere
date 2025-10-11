@@ -21,12 +21,15 @@ class TopBarView: UIView {
     private var categoryLabelMap: [String: UILabel] = [:] // map from category.apiValue to corresponding label
     private var favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol
     private var currentCategory: String? // store current category
+    private let backgroundQueue = DispatchQueue(label: "com.newssphere.topbar", qos: .userInitiated)
     
     init(frame: CGRect, repository: FavoriteCategoryRepositoryProtocol = FavoriteCategoryRepository()) {
         self.favoriteCategoryRepository = repository
         super.init(frame: frame)
         setupUI()
         backgroundColor = .clear
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(themeChanged), name: NSNotification.Name("ThemeChangedNotification"), object: nil)
     }
     
     override init(frame: CGRect) {
@@ -34,6 +37,8 @@ class TopBarView: UIView {
         super.init(frame: frame)
         setupUI()
         backgroundColor = .clear
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(themeChanged), name: NSNotification.Name("ThemeChangedNotification"), object: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -41,6 +46,33 @@ class TopBarView: UIView {
         super.init(coder: coder)
         setupUI()
         backgroundColor = .clear
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(themeChanged), name: NSNotification.Name("ThemeChangedNotification"), object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func themeChanged() {
+        updateLabelColors()
+    }
+    
+    func updateLabelColors() {
+        if let currentCategory = currentCategory, let selectedLabel = categoryLabelMap[currentCategory] {
+            labels.forEach { label in
+                if label == selectedLabel {
+                    label.textColor = ThemeManager.shared.currentTheme.isLight ? 
+                    UIColor(named: "hex_Red") ?? .red : .white
+                } else {
+                    label.textColor = ThemeManager.shared.currentTheme.isLight ? .darkGray : .darkGray
+                }
+            }
+        } else {
+            labels.forEach { label in
+                label.textColor = ThemeManager.shared.currentTheme.isLight ? .darkGray : .darkGray
+            }
+        }
     }
     
     private func setupLabel(selectedTitle: UILabel) {
@@ -66,33 +98,38 @@ class TopBarView: UIView {
         labelCategoryMap.removeAll()
         categoryLabelMap.removeAll()
         
-        // Get list of fav category
-        let favoriteCategories = favoriteCategoryRepository.getAllFavoriteCategories()
-        
-        let shouldShowYourNews = !favoriteCategories.isEmpty
-        
-        // add new label
-        for category in NewsCategoryType.allCases {
-            // Skip yourNews if no favorites
-            if category == .yourNews && !shouldShowYourNews {
-                continue
-            }
+        // Get list of fav category on background thread
+        backgroundQueue.async { [weak self] in
+            guard let self = self else { return }
             
-            let label = UILabel()
-            label.text = category.title
-            setupLabel(selectedTitle: label)
-            labelCategoryMap[label] = category
-            categoryLabelMap[category.apiValue] = label
-        }
-        
-        // If there is a category -> highlighted
-        if let categoryToSelect = categoryToSelect, let labelToHighlight = categoryLabelMap[categoryToSelect] {
-            highlightLabel(labelToHighlight)
-            scrollToLabel(labelToHighlight)
+            let favoriteCategories = self.favoriteCategoryRepository.getAllFavoriteCategories()
+            let shouldShowYourNews = !favoriteCategories.isEmpty
+            
+            DispatchQueue.main.async {
+                // add new label
+                for category in NewsCategoryType.allCases {
+                    // Skip yourNews if no favorites
+                    if category == .yourNews && !shouldShowYourNews {
+                        continue
+                    }
+                    
+                    let label = UILabel()
+                    label.text = category.title
+                    self.setupLabel(selectedTitle: label)
+                    self.labelCategoryMap[label] = category
+                    self.categoryLabelMap[category.apiValue] = label
+                }
+                
+                // If there is a category -> highlighted
+                if let categoryToSelect = categoryToSelect, let labelToHighlight = self.categoryLabelMap[categoryToSelect] {
+                    self.highlightLabel(labelToHighlight)
+                    self.scrollToLabel(labelToHighlight)
+                }
+            }
         }
     }
     
-    // 2light a category
+    // Highlight a category
     func selectCategory(_ category: String) {
         guard currentCategory != category else { return }
         
@@ -109,7 +146,13 @@ class TopBarView: UIView {
         labels.forEach { label in
             label.font = label == selectedLabel ? UIFont.boldSystemFont(ofSize: 21) :
             UIFont.systemFont(ofSize: 14, weight: .semibold)
-            label.textColor = label == selectedLabel ? .white : .darkGray
+            
+            if label == selectedLabel {
+                label.textColor = ThemeManager.shared.currentTheme.isLight ? 
+                UIColor(named: "hex_Red") ?? .red : .white
+            } else {
+                label.textColor = .darkGray
+            }
         }
     }
     
@@ -159,7 +202,7 @@ class TopBarView: UIView {
         // update currentCategory
         currentCategory = selectedCategory.apiValue
         
-        // 2light label selected
+        // Highlight label selected
         highlightLabel(selectedLabel)
         
         // scroll to show label selected

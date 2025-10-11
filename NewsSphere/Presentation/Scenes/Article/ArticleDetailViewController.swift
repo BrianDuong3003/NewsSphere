@@ -43,16 +43,37 @@ class ArticleDetailViewController: UIViewController {
         setupConstraints()
         bindViewModel()
         navigationController?.setNavigationBarHidden(true, animated: false)
+        
+        // Add theme change observer
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        updateThemeBasedUI()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+    
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        view.backgroundColor = .themeBackgroundColor()
+        scrollView.backgroundColor = .themeBackgroundColor()
+        
+        loadingIndicator.color = .primaryTextColor
+        contentView.updateTheme()
+        webViewContainer?.updateTheme()
     }
     
     private func setupView() {
@@ -90,7 +111,7 @@ class ArticleDetailViewController: UIViewController {
             let imageName = isBookmarked ? "bookmark.fill" : "bookmark"
             self.bookmarkButton.setImage(UIImage(systemName: imageName), for: .normal)
         }
-
+        
         viewModel.currentFontSize.bind { [weak self] fontSize in
             guard let self = self else { return }
             self.contentView.updateFontSize(fontSize)
@@ -101,7 +122,7 @@ class ArticleDetailViewController: UIViewController {
 // MARK: - Setup UI
 extension ArticleDetailViewController {
     private func setupStyle() {
-        view.backgroundColor = UIColor.hexBackGround
+        view.backgroundColor = .themeBackgroundColor()
         
         headerView.backgroundColor = UIColor.hexRed
         
@@ -110,7 +131,7 @@ extension ArticleDetailViewController {
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         
         shareButton.setImage(UIImage(named: "share"), for: .normal)
-        shareButton.tintColor = UIColor.hexGrey
+        shareButton.tintColor = .white
         shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
         
         textSizeButton.setImage(UIImage(named: "textSize"), for: .normal)
@@ -119,12 +140,13 @@ extension ArticleDetailViewController {
         
         bookmarkButton.tintColor = .white
         bookmarkButton.addTarget(self, action: #selector(bookmarkButtonTapped), for: .touchUpInside)
-
+        
         contentView.delegate = self
         
         scrollView.showsVerticalScrollIndicator = true
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.alwaysBounceVertical = true
+        scrollView.backgroundColor = .themeBackgroundColor()
     }
     
     private func setupConstraints() {
@@ -221,7 +243,7 @@ extension ArticleDetailViewController: ArticleContentViewDelegate {
         
         showInAppWebView(for: urlString)
     }
-   
+    
     private func showInAppWebView(for urlString: String) {
         if webViewContainer == nil {
             webViewContainer = WebViewContainer(frame: .zero)
@@ -237,6 +259,7 @@ extension ArticleDetailViewController: ArticleContentViewDelegate {
                 ])
                 
                 webViewContainer.webView.scrollView.isScrollEnabled = true
+                webViewContainer.updateTheme()
             }
         }
         

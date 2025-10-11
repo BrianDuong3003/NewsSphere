@@ -36,6 +36,11 @@ class ProfileViewController: UIViewController {
     private let favoriteCategoriesLabel = UILabel()
     private let favoriteCategoriesIconView = UIImageView()
     
+    // Theme Toggle
+    private let themeToggleOptionView = UIView()
+    private let themeToggleLabel = UILabel()
+    private let themeToggleIconView = UIImageView()
+    
     // Logout
     private let logoutLabel = UILabel()
     private let logoutIconView = UIImageView()
@@ -64,12 +69,16 @@ class ProfileViewController: UIViewController {
         setupConstraints()
         setupActions()
         setupBindings()
+        
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(updateThemeBasedUI))
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadUserProfile()
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        updateUIBasedOnAuthState()
+        updateThemeBasedUI()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -79,6 +88,10 @@ class ProfileViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         avatarImageView.layer.cornerRadius = avatarImageView.frame.width / 2
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
     }
     
     // MARK: - Setup Methods (Private)
@@ -103,6 +116,7 @@ class ProfileViewController: UIViewController {
         optionsStackView.addArrangedSubview(bookmarkOptionView)
         optionsStackView.addArrangedSubview(readOfflineOptionView)
         optionsStackView.addArrangedSubview(favoriteCategoriesOptionView)
+        optionsStackView.addArrangedSubview(themeToggleOptionView)
         
         bookmarkOptionView.subviews {
             bookmarkLabel
@@ -118,54 +132,60 @@ class ProfileViewController: UIViewController {
             favoriteCategoriesLabel
             favoriteCategoriesIconView
         }
+        
+        themeToggleOptionView.subviews {
+            themeToggleLabel
+            themeToggleIconView
+        }
     }
     
     private func setupStyle() {
-        view.backgroundColor = .hexBackGround
+        view.backgroundColor = .themeBackgroundColor()
         title = "Profile"
         
-        avatarImageView.backgroundColor = .lightGray
+        avatarImageView.backgroundColor = .themeBackgroundColor()
         avatarImageView.contentMode = .scaleAspectFill
         avatarImageView.clipsToBounds = true
         avatarImageView.image = UIImage(named: "default")
         
         nameLabel.font = .systemFont(ofSize: 24, weight: .bold)
-        nameLabel.textColor = .white
+        nameLabel.textColor = .primaryTextColor
         nameLabel.textAlignment = .center
         nameLabel.numberOfLines = 0
         
         emailLabel.font = .systemFont(ofSize: 16, weight: .regular)
-        emailLabel.textColor = .hexGrey
+        emailLabel.textColor = .secondaryTextColor
         emailLabel.textAlignment = .center
         
         optionsStackView.axis = .vertical
         optionsStackView.spacing = 16
         optionsStackView.distribution = .fillEqually
         
-        bookmarkOptionView.backgroundColor = .hexBackGround
+        bookmarkOptionView.backgroundColor = .themeBackgroundColor()
         bookmarkOptionView.layer.cornerRadius = 12
         bookmarkOptionView.layer.borderWidth = 0.3
-        bookmarkOptionView.layer.borderColor = UIColor.hexGrey.cgColor
+        bookmarkOptionView.layer.borderColor = UIColor.borderColor.cgColor
         
         bookmarkLabel.text = "Bookmark"
         bookmarkLabel.font = .systemFont(ofSize: 20, weight: .semibold)
-        bookmarkLabel.textColor = .white
+        bookmarkLabel.textColor = .primaryTextColor
         
         bookmarkIconView.image = UIImage(systemName: "bookmark.fill")
-        bookmarkIconView.tintColor = .hexGrey
+        bookmarkIconView.tintColor = .secondaryTextColor
         bookmarkIconView.contentMode = .scaleAspectFit
         
-        readOfflineOptionView.backgroundColor = .hexBackGround
+        readOfflineOptionView.backgroundColor = .themeBackgroundColor()
         readOfflineOptionView.layer.cornerRadius = 12
         readOfflineOptionView.layer.borderWidth = 0.3
-        readOfflineOptionView.layer.borderColor = UIColor.hexGrey.cgColor
+        readOfflineOptionView.layer.borderColor = UIColor.borderColor.cgColor
         
         readOfflineLabel.text = "Read Offline"
         readOfflineLabel.font = .systemFont(ofSize: 20, weight: .semibold)
-        readOfflineLabel.textColor = .white
+        readOfflineLabel.textColor = .primaryTextColor
         
-        readOfflineIconView.image = UIImage(named: "vtdl")
-        readOfflineIconView.tintColor = .white
+        //        readOfflineIconView.image = UIImage(systemName: "download.fill")
+        readOfflineIconView.image = UIImage(systemName: "arrow.down.circle.fill")
+        readOfflineIconView.tintColor = .secondaryTextColor
         readOfflineIconView.contentMode = .scaleAspectFit
         
         logoutIconView.image = UIImage(named: "logout")
@@ -182,23 +202,74 @@ class ProfileViewController: UIViewController {
         
         ruleLabel.text = "By registering and using this application, you agree and acknowledge that you understand the End-User License Agreement (EULA) & Privacy Policy."
         ruleLabel.font = .systemFont(ofSize: 15, weight: .medium)
-        ruleLabel.textColor = .hexGrey
+        ruleLabel.textColor = .secondaryTextColor
         ruleLabel.numberOfLines = 0
         
-        favoriteCategoriesOptionView.backgroundColor = .hexBackGround
+        favoriteCategoriesOptionView.backgroundColor = .themeBackgroundColor()
         favoriteCategoriesOptionView.layer.cornerRadius = 12
         favoriteCategoriesOptionView.layer.borderWidth = 0.3
-        favoriteCategoriesOptionView.layer.borderColor = UIColor.hexGrey.cgColor
+        favoriteCategoriesOptionView.layer.borderColor = UIColor.borderColor.cgColor
         
         favoriteCategoriesLabel.text = "Favorite Categories"
         favoriteCategoriesLabel.font = .systemFont(ofSize: 20, weight: .semibold)
-        favoriteCategoriesLabel.textColor = .white
+        favoriteCategoriesLabel.textColor = .primaryTextColor
         
         favoriteCategoriesIconView.image = UIImage(systemName: "star.fill")
-        favoriteCategoriesIconView.tintColor = .hexGrey
+        favoriteCategoriesIconView.tintColor = .secondaryTextColor
         favoriteCategoriesIconView.contentMode = .scaleAspectFit
+        
+        // Theme Toggle styling
+        themeToggleOptionView.backgroundColor = .themeBackgroundColor()
+        themeToggleOptionView.layer.cornerRadius = 12
+        themeToggleOptionView.layer.borderWidth = 0.3
+        themeToggleOptionView.layer.borderColor = UIColor.borderColor.cgColor
+        
+        updateThemeToggleUI()
     }
     
+    @objc private func updateThemeBasedUI() {
+        // Update colors throughout the view
+        view.backgroundColor = .themeBackgroundColor()
+        avatarImageView.backgroundColor = .themeBackgroundColor()
+        nameLabel.textColor = .primaryTextColor
+        emailLabel.textColor = .secondaryTextColor
+        ruleLabel.textColor = .secondaryTextColor
+        
+        // Update option backgrounds
+        bookmarkOptionView.backgroundColor = .themeBackgroundColor()
+        bookmarkOptionView.layer.borderColor = UIColor.borderColor.cgColor
+        bookmarkLabel.textColor = .primaryTextColor
+        
+        readOfflineOptionView.backgroundColor = .themeBackgroundColor()
+        readOfflineOptionView.layer.borderColor = UIColor.borderColor.cgColor
+        readOfflineLabel.textColor = .primaryTextColor
+        
+        favoriteCategoriesOptionView.backgroundColor = .themeBackgroundColor()
+        favoriteCategoriesOptionView.layer.borderColor = UIColor.borderColor.cgColor
+        favoriteCategoriesLabel.textColor = .primaryTextColor
+        
+        themeToggleOptionView.backgroundColor = .themeBackgroundColor()
+        themeToggleOptionView.layer.borderColor = UIColor.borderColor.cgColor
+        
+        // Update theme toggle UI specifically
+        updateThemeToggleUI()
+    }
+    
+    private func updateThemeToggleUI() {
+        let isLightMode = ThemeManager.shared.currentTheme == .light
+        
+        themeToggleLabel.text = isLightMode ? "Dark Mode" : "Light Mode"
+        themeToggleLabel.font = .systemFont(ofSize: 20, weight: .semibold)
+        themeToggleLabel.textColor = .primaryTextColor
+        
+        // moon icon for darkmode, sun for light mode
+        let iconName = isLightMode ? "moon.fill" : "sun.max.fill"
+        themeToggleIconView.image = UIImage(systemName: iconName)
+        themeToggleIconView.tintColor = isLightMode ? .secondaryTextColor : UIColor(named: "hex_Orange") ?? .orange
+        themeToggleIconView.contentMode = .scaleAspectFit
+    }
+    
+    // MARK: - Setup Constraints
     private func setupConstraints() {
         contentView.width(UIScreen.main.bounds.width)
         contentView.height(UIScreen.main.bounds.height)
@@ -218,7 +289,7 @@ class ProfileViewController: UIViewController {
         
         optionsStackView.Top == emailLabel.Bottom + 40
         optionsStackView.left(20).right(20)
-        optionsStackView.height(180)
+        optionsStackView.height(240)
         
         bookmarkLabel.centerVertically()
         bookmarkLabel.Leading == bookmarkOptionView.Leading + 16
@@ -241,7 +312,14 @@ class ProfileViewController: UIViewController {
         favoriteCategoriesIconView.Trailing == favoriteCategoriesOptionView.Trailing - 16
         favoriteCategoriesIconView.width(24).height(24)
         
-        logoutContainerView.Top == optionsStackView.Bottom + 40
+        themeToggleLabel.centerVertically()
+        themeToggleLabel.Leading == themeToggleOptionView.Leading + 16
+        
+        themeToggleIconView.centerVertically()
+        themeToggleIconView.Trailing == themeToggleOptionView.Trailing - 16
+        themeToggleIconView.width(24).height(24)
+        
+        logoutContainerView.Top == optionsStackView.Bottom + 25
         logoutContainerView.centerHorizontally()
         
         logoutIconView.Leading == logoutContainerView.Leading
@@ -255,7 +333,7 @@ class ProfileViewController: UIViewController {
         logoutContainerView.Height >= logoutIconView.Height
         logoutContainerView.Height >= logoutLabel.Height
         
-        ruleLabel.Top == logoutContainerView.Bottom + 50
+        ruleLabel.Top == logoutContainerView.Bottom + 30
         ruleLabel.left(20).right(20)
         
         deleteAccountLabel.Top == ruleLabel.Bottom + 20
@@ -264,30 +342,22 @@ class ProfileViewController: UIViewController {
     
     // MARK: - Bindings
     private func setupBindings() {
-        // Handle profile data loaded event
         viewModel.onProfileDataLoaded = { [weak self] in
-            guard let self = self else { return }
-            self.updateUIWithProfileData()
+            self?.updateUIWithUserData()
         }
         
-        // Handle error event
         viewModel.onError = { [weak self] errorMessage in
-            guard let self = self else { return }
-            print("DEBUG_DELETE_ACCOUNT: ProfileViewModel error: \(errorMessage)")
-            self.showError(errorMessage)
+            // Show error message to user
+            print("DEBUG - ProfileViewController: Error: \(errorMessage)")
         }
         
-        // Handle logout success event
         viewModel.onLogoutSuccess = { [weak self] in
-            guard let self = self else { return }
-            self.coordinator?.didLogout()
+            self?.coordinator?.didLogout()
         }
         
-        // Handle account deleted event
         viewModel.onAccountDeleted = { [weak self] in
-            guard let self = self else { return }
-            print("DEBUG_DELETE_ACCOUNT: Account deleted successfully, calling didLogout")
-            self.coordinator?.didLogout()
+            print("DEBUG_DELETE_ACCOUNT: Account deleted callback received in ProfileViewController")
+            self?.coordinator?.didLogout()
         }
     }
     
@@ -296,49 +366,90 @@ class ProfileViewController: UIViewController {
         viewModel.loadUserProfile()
     }
     
-    private func updateUIWithProfileData() {
+    private func updateUIWithUserData() {
         nameLabel.text = viewModel.getFormattedFullName()
-        emailLabel.text = viewModel.email
+        emailLabel.text = viewModel.getDisplayEmail()
+        
+        // Update auth button text
+        logoutLabel.text = viewModel.getAuthButtonText()
+        
+        updateUIBasedOnAuthState()
     }
     
-    private func showError(_ message: String) {
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+    private func updateUIBasedOnAuthState() {
+        // Show/hide elements based on authentication state
+        favoriteCategoriesOptionView.isHidden = !viewModel.canAccessFavoriteCategories()
+        bookmarkOptionView.isHidden = !viewModel.canAccessBookmarks()
+        readOfflineOptionView.isHidden = !viewModel.canAccessReadOffline()
+        themeToggleOptionView.isHidden = !viewModel.canAccessFavoriteCategories()
+        deleteAccountLabel.isHidden = !viewModel.shouldShowDeleteAccount()
+        
+        // Update logout/login button appearance
+        if viewModel.shouldShowLogout() {
+            logoutLabel.text = "Logout"
+            logoutLabel.textColor = .hexExRed
+            logoutIconView.tintColor = .hexExRed
+        } else {
+            logoutLabel.text = "Login"
+            logoutLabel.textColor = .hexOrange
+            logoutIconView.image = UIImage(systemName: "person.circle.fill")
+            logoutIconView.tintColor = .hexOrange
+        }
+        
+        optionsStackView.arrangedSubviews.forEach { view in
+            view.isHidden = view.isHidden
+        }
     }
     
     // MARK: - Actions
     private func setupActions() {
-        let bookmarkTapGesture = UITapGestureRecognizer(target: self, action: #selector(bookmarkOptionTapped))
-        bookmarkOptionView.addGestureRecognizer(bookmarkTapGesture)
-        bookmarkOptionView.isUserInteractionEnabled = true
+        let bookmarkGesture = UITapGestureRecognizer(target: self, action: #selector(bookmarkTapped))
+        bookmarkOptionView.addGestureRecognizer(bookmarkGesture)
         
-        let readOfflineTapGesture = UITapGestureRecognizer(target: self, action: #selector(readOfflineOptionTapped))
-        readOfflineOptionView.addGestureRecognizer(readOfflineTapGesture)
-        readOfflineOptionView.isUserInteractionEnabled = true
+        let readOfflineGesture = UITapGestureRecognizer(target: self, action: #selector(readOfflineTapped))
+        readOfflineOptionView.addGestureRecognizer(readOfflineGesture)
         
-        let deleteAccountTapGesture = UITapGestureRecognizer(target: self, action: #selector(deleteAccountOptionTapped))
-        deleteAccountLabel.addGestureRecognizer(deleteAccountTapGesture)
+        let favoriteCategoriesGesture = UITapGestureRecognizer(target: self, action: #selector(favoriteCategoriesTapped))
+        favoriteCategoriesOptionView.addGestureRecognizer(favoriteCategoriesGesture)
+        
+        let themeToggleGesture = UITapGestureRecognizer(target: self, action: #selector(themeToggleTapped))
+        themeToggleOptionView.addGestureRecognizer(themeToggleGesture)
+        
+        let logoutGesture = UITapGestureRecognizer(target: self, action: #selector(logoutTapped))
+        logoutContainerView.addGestureRecognizer(logoutGesture)
+        
+        let deleteAccountGesture = UITapGestureRecognizer(target: self, action: #selector(deleteAccountTapped))
+        deleteAccountLabel.addGestureRecognizer(deleteAccountGesture)
         deleteAccountLabel.isUserInteractionEnabled = true
-        
-        let logoutTapGesture = UITapGestureRecognizer(target: self, action: #selector(logoutButtonTapped))
-        logoutContainerView.addGestureRecognizer(logoutTapGesture)
-        logoutContainerView.isUserInteractionEnabled = true
-        
-        let favoriteCategoriesTapGesture = UITapGestureRecognizer(target: self, action: #selector(favoriteCategoriesTapped))
-        favoriteCategoriesOptionView.addGestureRecognizer(favoriteCategoriesTapGesture)
-        favoriteCategoriesOptionView.isUserInteractionEnabled = true
     }
     
-    @objc private func bookmarkOptionTapped() {
+    @objc private func themeToggleTapped() {
+        ThemeManager.shared.toggleTheme()
+        ThemeManager.shared.applyTheme()
+        updateThemeBasedUI()
+    }
+    
+    @objc private func bookmarkTapped() {
         coordinator?.navigateToBookmarks()
     }
     
-    @objc private func readOfflineOptionTapped() {
+    @objc private func readOfflineTapped() {
         coordinator?.navigateToReadOffline()
     }
     
-    @objc private func deleteAccountOptionTapped() {
+    @objc private func favoriteCategoriesTapped() {
+        coordinator?.showEditFavoriteCategories()
+    }
+    
+    @objc private func logoutTapped() {
+        if viewModel.shouldShowLogout() {
+            viewModel.logout()
+        } else {
+            coordinator?.navigateToLogin()
+        }
+    }
+    
+    @objc private func deleteAccountTapped() {
         print("DEBUG_DELETE_ACCOUNT: deleteAccountOptionTapped method called")
         if let coordinator = coordinator {
             print("DEBUG_DELETE_ACCOUNT: coordinator exists, calling showDeleteAccountConfirmation")
@@ -346,25 +457,5 @@ class ProfileViewController: UIViewController {
         } else {
             print("DEBUG_DELETE_ACCOUNT: ERROR - coordinator is nil")
         }
-    }
-    
-    @objc private func logoutButtonTapped() {
-        let alert = UIAlertController(title: "Logout", message: "Are you sure you want to logout?", preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Logout", style: .destructive) { [weak self] _ in
-            self?.performLogout()
-        })
-        
-        present(alert, animated: true)
-    }
-    
-    @objc private func favoriteCategoriesTapped() {
-        print("DEBUG - ProfileViewController: Favorite categories tapped")
-        coordinator?.showEditFavoriteCategories()
-    }
-    
-    private func performLogout() {
-        viewModel.logout()
     }
 }

@@ -1,5 +1,5 @@
 //
-//  PoliticsCell.swift
+//  CategoryArticlesCell.swift
 //  NewsSphere
 //
 //  Created by DUONG DONG QUAN on 7/4/25.
@@ -7,6 +7,7 @@
 
 import UIKit
 import Stevia
+import Kingfisher
 
 class CategoryArticlesCell: UICollectionViewCell {
     private lazy var picture = UIImageView()
@@ -20,6 +21,21 @@ class CategoryArticlesCell: UICollectionViewCell {
         setupView()
         setupStyle()
         setupConstraints()
+        
+        // Add theme change observer
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(themeChanged),
+            name: ThemeManager.themeChangedNotification,
+            object: nil
+        )
+        
+        // Apply initial theme
+        updateThemeBasedUI()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func layoutSubviews() {
@@ -32,22 +48,50 @@ class CategoryArticlesCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        let isLightMode = ThemeManager.shared.currentTheme.isLight
+        
+        // Update text colors based on theme
+        titleLabel.textColor = isLightMode ? .black : .white
+        sourceName.textColor = .secondaryTextColor
+    }
+    
     func configure(with article: Article) {
         titleLabel.text = article.title
         sourceName.text = article.sourceName
         categoryLB.text = article.category?.first?.capitalized ?? "Unknown"
         
         if let imageUrl = article.imageUrl, let url = URL(string: imageUrl) {
-            picture.sd_setImage(with: url, placeholderImage: UIImage(named: "placeholder_image"))
+            picture.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "placeholder_image"),
+                options: [
+                    .transition(.fade(0.3)),
+                    .cacheOriginalImage
+                ]
+            )
         } else {
             picture.image = UIImage(named: "placeholder_image")
         }
         
         if let iconUrl = article.sourceIcon, let url = URL(string: iconUrl) {
-            sourceIcon.sd_setImage(with: url, placeholderImage: UIImage(named: "placeholder_icon"))
+            sourceIcon.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "placeholder_icon"),
+                options: [
+                    .transition(.fade(0.3)),
+                    .cacheOriginalImage
+                ]
+            )
         } else {
             sourceIcon.image = UIImage(named: "placeholder_icon")
         }
+        
+        updateThemeBasedUI()
     }
 }
 
@@ -70,10 +114,8 @@ extension CategoryArticlesCell {
         sourceIcon.contentMode = .scaleAspectFill
         sourceIcon.backgroundColor = .lightGray
         
-        sourceName.textColor = .hexGrey
         sourceName.font = .systemFont(ofSize: 14, weight: .regular)
         
-        titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
         titleLabel.numberOfLines = 0
         

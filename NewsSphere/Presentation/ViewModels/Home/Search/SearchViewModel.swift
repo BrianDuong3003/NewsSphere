@@ -9,7 +9,7 @@ import Foundation
 class SearchViewModel {
     // MARK: - Properties
     private let repository: ArticleRepository
-    private let realmManager: RealmManager?
+    private var realmManager: RealmManager?
     private var searchWorkItem: DispatchWorkItem?
     private var searchCache: [String: [Article]] = [:]
     private let cacheTimeout: TimeInterval = 300
@@ -25,7 +25,16 @@ class SearchViewModel {
     init(repository: ArticleRepository = ArticleRepository(),
          realmManager: RealmManager? = UserSessionManager.shared.getCurrentRealmManager()) {
         self.repository = repository
-        self.realmManager = realmManager
+        if let realmManager = realmManager {
+            self.realmManager = realmManager
+            print("DEBUG - SearchViewModel: RealmManager initialized successfully")
+        } else if let anonymousRealmManager = RealmManager(userUID: "anonymous") {
+            self.realmManager = anonymousRealmManager
+            print("DEBUG - SearchViewModel: Initialized RealmManager with anonymous user")
+        } else {
+            self.realmManager = nil
+            print("DEBUG - SearchViewModel: Failed to initialize RealmManager")
+        }
         loadSearchHistory()
     }
     
@@ -60,12 +69,49 @@ class SearchViewModel {
             DispatchQueue.main.async {
                 self?.isLoading.value = false
                 if let articles = articles {
-                    self?.articles.value = articles
-                    self?.cacheResults(articles, for: query)
+                    // First remove duplicates
+                    let uniqueArticles = self?.removeDuplicateArticles(articles) ?? []
+                    
+                    // Then filter articles that contain the search query
+                    let filteredArticles = self?.filterArticlesByQuery(uniqueArticles, query: query) ?? []
+                    
+                    self?.articles.value = filteredArticles
+                    self?.cacheResults(filteredArticles, for: query)
                     self?.saveSearchHistory(keyword: query)
                 } else {
                     self?.error.value = "No articles found."
                 }
+            }
+        }
+    }
+    
+    private func removeDuplicateArticles(_ articles: [Article]) -> [Article] {
+        var seenArticles = Set<String>()
+        var uniqueArticles: [Article] = []
+        
+        for article in articles {
+            // Create a unique identifier for the article based on title and content
+            let identifier = "\(article.title ?? "")_\(article.content ?? "")"
+            
+            if !seenArticles.contains(identifier) {
+                seenArticles.insert(identifier)
+                uniqueArticles.append(article)
+            }
+        }
+        
+        return uniqueArticles
+    }
+    
+    private func filterArticlesByQuery(_ articles: [Article], query: String) -> [Article] {
+        let searchTerms = query.lowercased().split(separator: " ")
+        
+        return articles.filter { article in
+            let title = article.title?.lowercased() ?? ""
+            let content = article.content?.lowercased() ?? ""
+            
+            // Check if all search terms are present in either title or content
+            return searchTerms.allSatisfy { term in
+                title.contains(term) || content.contains(term)
             }
         }
     }
@@ -91,10 +137,15 @@ class SearchViewModel {
     
     func loadSearchHistory() {
         guard let realmManager = realmManager else {
+            print("DEBUG - SearchViewModel: Cannot load search history - RealmManager is nil")
             searchHistory.value = []
             return
         }
-        searchHistory.value = realmManager.getSearchHistory()
+        
+        print("DEBUG - SearchViewModel: Loading search history")
+        let history = realmManager.getSearchHistory()
+        print("DEBUG - SearchViewModel: Loaded \(history.count) search history items")
+        searchHistory.value = history
     }
     
     func deleteSearchKeyword(_ keyword: String) {
@@ -110,6 +161,15 @@ class SearchViewModel {
     func article(at index: Int) -> Article? {
         guard index >= 0, index < articles.value.count else { return nil }
         return articles.value[index]
+    }
+    
+    // MARK: - Get category for an article
+    func getArticleCategory(at index: Int) -> String? {
+        guard let article = article(at: index), let categories = article.category, !categories.isEmpty else {
+            return nil
+        }
+        // Return the first category from the article's category array
+        return categories.first
     }
     
     func formatTimeAgo(from dateString: String?) -> String {
@@ -137,7 +197,12 @@ class SearchViewModel {
     }
     
     private func saveSearchHistory(keyword: String) {
-        guard let realmManager = realmManager else { return }
+        guard let realmManager = realmManager else {
+            print("DEBUG - SearchViewModel: Cannot save search history - RealmManager is nil")
+            return
+        }
+        
+        print("DEBUG - SearchViewModel: Saving search history for keyword: \(keyword)")
         realmManager.saveSearchHistory(keyword: keyword)
         loadSearchHistory()
     }

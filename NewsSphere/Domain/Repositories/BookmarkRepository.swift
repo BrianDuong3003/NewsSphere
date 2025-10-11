@@ -10,10 +10,22 @@ class BookmarkRepository: BookmarkRepositoryProtocol {
     private let realmManager: RealmManager
     
     init(realmManager: RealmManager? = nil) {
-        self.realmManager = realmManager ?? UserSessionManager.shared.getCurrentRealmManager() ?? {
-            print("ERROR - BookmarkRepository: No RealmManager available. Creating a guest one.")
-            return RealmManager(userUID: "guest")!
-        }()
+        // Use the provided RealmManager or get it from UserSessionManager
+        if let providedRealmManager = realmManager {
+            self.realmManager = providedRealmManager
+        } else if let sessionRealmManager = UserSessionManager.shared.getCurrentRealmManager() {
+            self.realmManager = sessionRealmManager
+        } else {
+            // Create a default RealmManager with a unique ID that's not user-dependent
+            print("WARNING - BookmarkRepository: No RealmManager available. Creating a default one.")
+            // Use "anonymous" as a guaranteed valid user ID
+            if let defaultRealmManager = RealmManager(userUID: "anonymous") {
+                self.realmManager = defaultRealmManager
+            } else {
+                // If RealmManager initialization still fails, create a basic implementation to avoid crashes
+                fatalError("Failed to initialize RealmManager. This is a critical error that needs to be fixed.")
+            }
+        }
     }
     
     // make sure execute on main thread

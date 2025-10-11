@@ -27,12 +27,23 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
         realmManager: RealmManager? = nil
     ) {
         self.articleRepository = articleRepository
+
         // Use the provided RealmManager or get it from UserSessionManager
-        self.realmManager = realmManager ?? UserSessionManager.shared.getCurrentRealmManager() ?? {
-            print("ERROR - OfflineArticleRepository: No RealmManager available. Creating a guest one.")
-            // Handle guest/error case
-            return RealmManager(userUID: "guest")!
-        }()
+        if let providedRealmManager = realmManager {
+            self.realmManager = providedRealmManager
+        } else if let sessionRealmManager = UserSessionManager.shared.getCurrentRealmManager() {
+            self.realmManager = sessionRealmManager
+        } else {
+            // Create a default RealmManager with a unique ID that's not user-dependent
+            print("WARNING - OfflineArticleRepository: No RealmManager available. Creating a default one.")
+            // Use "anonymous" as a guaranteed valid user ID
+            if let defaultRealmManager = RealmManager(userUID: "anonymous") {
+                self.realmManager = defaultRealmManager
+            } else {
+                // If RealmManager initialization still fails, create a basic implementation to avoid crashes
+                fatalError("Failed to initialize RealmManager. This is a critical error that needs to be fixed.")
+            }
+        }
     }
     
     // make sure execute on main thread
@@ -58,7 +69,38 @@ class OfflineArticleRepository: OfflineArticleRepositoryProtocol {
             guard let self = self else { return }
             
             if let articles = articles {
-                let articlesToSave = Array(articles.prefix(10))
+                // Create a copy of the articles with ensured category information
+                let articlesToSave = Array(articles.prefix(10)).map { article -> Article in
+                    // If the article doesn't have any categories, create a modified copy with the "top" category
+                    if article.category == nil || article.category!.isEmpty {
+                        // Create a new category array with "top"
+                        let category = ["top"]
+                        
+                        // Create a modified copy of the article with the category set
+                        return Article(
+                            articleId: article.articleId,
+                            title: article.title,
+                            link: article.link,
+                            keywords: article.keywords,
+                            creator: article.creator,
+                            videoUrl: article.videoUrl,
+                            description: article.description,
+                            content: article.content,
+                            pubDate: article.pubDate,
+                            imageUrl: article.imageUrl,
+                            sourceId: article.sourceId,
+                            sourceName: article.sourceName,
+                            sourceUrl: article.sourceUrl,
+                            sourceIcon: article.sourceIcon,
+                            language: article.language,
+                            category: category,
+                            country: article.country
+                        )
+                    }
+                    // If the article already has categories, return it as is
+                    return article
+                }
+                
                 completion(.success(articlesToSave))
             } else {
                 let error = NSError(

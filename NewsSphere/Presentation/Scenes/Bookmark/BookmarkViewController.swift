@@ -17,6 +17,12 @@ class BookmarkViewController: UIViewController {
         setupStyle()
         setupConstraints()
         bindViewModel()
+        
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
     }
     
     init(viewModel: BookmarkViewModel) {
@@ -38,10 +44,22 @@ class BookmarkViewController: UIViewController {
         super.viewWillAppear(animated)
         viewModel.loadBookmarks()
         navigationController?.setNavigationBarHidden(true, animated: false)
+        updateThemeBasedUI()
     }
     
     @objc private func backButtonTapped() {
         viewModel.navigateBack()
+    }
+    
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        view.backgroundColor = .themeBackgroundColor()
+        tableView.backgroundColor = .themeBackgroundColor()
+        titleLabel.textColor = .white
+        tableView.reloadData()
     }
 }
 
@@ -56,7 +74,7 @@ extension BookmarkViewController {
     }
     
     private func setupStyle() {
-        view.backgroundColor = UIColor.hexBackGround
+        view.backgroundColor = .themeBackgroundColor()
         topView.backgroundColor = UIColor(.hexRed)
         
         backButton.setImage(UIImage(named: "ic_back_button"), for: .normal)
@@ -67,7 +85,7 @@ extension BookmarkViewController {
         titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
         titleLabel.textColor = .white
         
-        tableView.backgroundColor = UIColor(.hexBackGround)
+        tableView.backgroundColor = .themeBackgroundColor()
         tableView.delegate = self
         tableView.dataSource = self
         tableView.estimatedRowHeight = 100

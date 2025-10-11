@@ -17,5 +17,7 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>com.apple.developer.authentication-services.autofill</key>
+	<false/>
 </dict>
 </plist>

@@ -15,25 +15,68 @@ enum ArticleSection {
 }
 
 class HomeViewModel {
+    // MARK: - Properties
     private let articleRepository: ArticleRepositoryProtocol
-    private var articles: [Article] = []
-    private(set) var currentCategory: String = ""
+    private let favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol
+    private var isAuthenticated: Bool = true
     
-    // Store the original category of each post
+    // Data properties
+    private var articles: [Article] = []
+    private var currentCategory: String = ""
     private var articleOriginalCategories: [String: String] = [:]
     
-    // Observables for UI updates
+    // MARK: - Callbacks
     var onArticlesUpdated: (() -> Void)?
-    var onErrorOccurred: ((String) -> Void)?
-    
+    var onError: ((String) -> Void)?
     weak var delegate: HomeViewModelDelegate?
     
-    private let favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol
-    
+    // MARK: - Initialization
     init(articleRepository: ArticleRepositoryProtocol, 
-         favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol = FavoriteCategoryRepository()) {
+         favoriteCategoryRepository: FavoriteCategoryRepositoryProtocol,
+         isAuthenticated: Bool = true) {
         self.articleRepository = articleRepository
         self.favoriteCategoryRepository = favoriteCategoryRepository
+        self.isAuthenticated = isAuthenticated
+    }
+    
+    // MARK: - Public methods
+    func loadContent() {
+        loadTrendingArticles()
+        
+        if isAuthenticated {
+            loadFavoriteCategories()
+        } else {
+            // For unauthenticated users, don't load favorite categories
+            // Just notify that the loading is complete to update UI
+            self.onArticlesUpdated?()
+        }
+    }
+    
+    func shouldShowFavoriteCategories() -> Bool {
+        return isAuthenticated && !getFavoriteCategories().isEmpty
+    }
+    
+    private func loadTrendingArticles() {
+        articleRepository.fetchTrendingArticles { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                if let result = result {
+                    self.articles = result
+                    self.onArticlesUpdated?()
+                } else {
+                    self.onError?("Failed to fetch trending articles")
+                }
+            }
+        }
+    }
+    
+    private func loadFavoriteCategories() {
+        // Load favorite categories from repository
+        let categories = favoriteCategoryRepository.getAllFavoriteCategories()
+        DispatchQueue.main.async {
+            // Update UI with categories
+            self.onArticlesUpdated?()
+        }
     }
     
     func fetchArticles(category: String) {
@@ -53,7 +96,7 @@ class HomeViewModel {
                     self.articleOriginalCategories.removeAll()
                     self.onArticlesUpdated?()
                 } else {
-                    self.onErrorOccurred?("Failed to fetch articles for \(category)")
+                    self.onError?("Failed to fetch articles for \(category)")
                 }
             }
         }
@@ -161,8 +204,12 @@ class HomeViewModel {
         return verticalArticles[index]
     }
     
+    private func getFavoriteCategories() -> [NewsCategoryType] {
+        return favoriteCategoryRepository.getAllFavoriteCategories()
+    }
+    
     func hasFavoriteCategories() -> Bool {
-        return !favoriteCategoryRepository.getAllFavoriteCategories().isEmpty
+        return !getFavoriteCategories().isEmpty
     }
     
     func selectArticle(from section: ArticleSection, at index: Int) {

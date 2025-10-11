@@ -43,6 +43,8 @@ class DiscoveryViewController: UIViewController {
         setupStyle()
         setupConstraints()
         setupBindings()
+        
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -51,6 +53,21 @@ class DiscoveryViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
+    }
+    
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        view.backgroundColor = .themeBackgroundColor()
+        contentView.backgroundColor = .themeBackgroundColor()
+        mainTitleLabel.textColor = ThemeManager.shared.currentTheme.isLight ? .black : .white
+        collectionView.reloadData()
     }
     
     // MARK: - Private Methods
@@ -105,33 +122,32 @@ extension DiscoveryViewController {
     }
     
     private func setupStyle() {
-        view.backgroundColor = .hexBackGround
+        view.backgroundColor = .themeBackgroundColor()
         
         mainTitleLabel.text = "Discovery"
         mainTitleLabel.font = .systemFont(ofSize: 24, weight: .bold)
         mainTitleLabel.textColor = .white
         mainTitleLabel.textAlignment = .center
         
-        contentView.backgroundColor = .hexBackGround
-        
-        searchBar.barTintColor = .hexDarkGrey
-        searchBar.isTranslucent = false
-        searchBar.backgroundColor = .clear
-        searchBar.searchTextField.backgroundColor = .clear
-        searchBar.searchTextField.leftView?.tintColor = .hexBackGround
-        searchBar.searchTextField.textColor = .hexBackGround
-        searchBar.layer.borderWidth = 1
-        searchBar.layer.borderColor = UIColor.hexGrey.cgColor
-        searchBar.layer.cornerRadius = 16
-        searchBar.clipsToBounds = true
-        searchBar.placeholder = "Search"
-        searchBar.delegate = self
+        contentView.backgroundColor = .themeBackgroundColor()
         
         collectionView.backgroundColor = .clear
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.showsVerticalScrollIndicator = false
         collectionView.register(DiscoveryCell.self, forCellWithReuseIdentifier: "DiscoveryCell")
+        
+        searchBar.barTintColor = .hexDarkGrey
+        searchBar.isTranslucent = false
+        searchBar.backgroundColor = .clear
+        searchBar.searchTextField.backgroundColor = .clear
+        searchBar.searchTextField.textColor = UIColor(named: "hex_BackGround")
+        searchBar.layer.cornerRadius = 16
+        searchBar.clipsToBounds = true
+        searchBar.placeholder = "Search"
+        searchBar.delegate = self
+        
+        updateThemeBasedUI()
     }
 }
 

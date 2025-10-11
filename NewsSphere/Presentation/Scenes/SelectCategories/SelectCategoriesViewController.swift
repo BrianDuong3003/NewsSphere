@@ -57,12 +57,34 @@ class SelectCategoriesViewController: UIViewController {
         setupConstraints()
         setupBindings()
         updateUI()
+        
+        // Add theme change observer
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         collectionView.collectionViewLayout.invalidateLayout()
         updateCollectionViewHeight()
+    }
+    
+    // MARK: - Theme Support
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        view.backgroundColor = .themeBackgroundColor()
+        contentView.backgroundColor = .themeBackgroundColor()
+        
+        titleLabel.textColor = .primaryTextColor
+        descLabel.textColor = .primaryTextColor
+        
+        collectionView.reloadData()
     }
     
     // MARK: - Setup Methods
@@ -83,16 +105,16 @@ class SelectCategoriesViewController: UIViewController {
     }
     
     private func setupStyle() {
-        view.backgroundColor = .black
+        view.backgroundColor = .themeBackgroundColor()
         
-        scrollView.showsVerticalScrollIndicator = false
+        scrollView.showsVerticalScrollIndicator = true
         
-        titleLabel.text = mode == .initialSetup ? "Select favorite categories" : "Edit favorite categories"
-        titleLabel.textColor = .white
+        titleLabel.text = mode == .initialSetup ? "Select favorite categories" : "Select favorite categories"
+        titleLabel.textColor = .primaryTextColor
         titleLabel.font = .systemFont(ofSize: 25, weight: .bold)
         
         descLabel.text = "These categories will be used to personalized news for you"
-        descLabel.textColor = .white
+        descLabel.textColor = .primaryTextColor
         descLabel.font = .systemFont(ofSize: 14, weight: .medium)
         descLabel.numberOfLines = 0
         descLabel.lineBreakMode = .byWordWrapping
@@ -108,9 +130,9 @@ class SelectCategoriesViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         
-        loginRegisterButotnDescLabel.text = mode == .initialSetup 
-            ? "Continue with selected categories" 
-            : "Save changes"
+        loginRegisterButotnDescLabel.text = mode == .initialSetup
+        ? "Continue with selected categories"
+        : "Save changes"
         loginRegisterButotnDescLabel.textColor = .white
         loginRegisterButotnDescLabel.font = .systemFont(ofSize: 18, weight: .bold)
         loginRegisterButotnDescLabel.numberOfLines = 0
@@ -119,11 +141,11 @@ class SelectCategoriesViewController: UIViewController {
         if let startColor = UIColor(named: "hex_Brown"),
            let endColor = UIColor(named: "hex_DarkRed") {
             navigateLoginRegisterButton.setGradientColors(startColor: startColor,
-                                   endColor: endColor)
+                                                          endColor: endColor)
         }
         
         navigateLoginRegisterButton.setGradientDirection(startPoint: CGPoint(x: 0, y: 0),
-                                  endPoint: CGPoint(x: 1, y: 0))
+                                                         endPoint: CGPoint(x: 1, y: 0))
         
         navigateLoginRegisterButton.setTitle(mode == .initialSetup ? "Continue" : "Save", for: .normal)
         navigateLoginRegisterButton.setTitleColor(.white, for: .normal)
@@ -195,7 +217,7 @@ class SelectCategoriesViewController: UIViewController {
         viewModel.onMaxCategoriesReached = { [weak self] in
             DispatchQueue.main.async {
                 self?.showAlert(
-                    title: "Maximum Categories Reached", 
+                    title: "Maximum Categories Reached",
                     message: "You can select up to \(self?.viewModel.getMaxAllowedCategories() ?? 5) categories. Please deselect a category first."
                 )
             }
@@ -252,13 +274,13 @@ extension SelectCategoriesViewController: UICollectionViewDataSource, UICollecti
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TagCell",
-                                                      for: indexPath) as? TagCell,
+                                                            for: indexPath) as? TagCell,
               let category = viewModel.category(at: indexPath.item) else {
             return UICollectionViewCell()
         }
         
         cell.configure(
-            with: category.displayName, 
+            with: category.displayName,
             isSelected: viewModel.isCategorySelected(category)
         )
         return cell

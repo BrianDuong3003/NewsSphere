@@ -17,6 +17,7 @@ class ProfileViewModel {
     private(set) var lastName: String = ""
     private(set) var email: String = ""
     private(set) var isLoggedIn: Bool = false
+    private(set) var isAuthenticated: Bool = true
     
     // MARK: - Binding Callbacks
     var onProfileDataLoaded: (() -> Void)?
@@ -25,16 +26,17 @@ class ProfileViewModel {
     var onAccountDeleted: (() -> Void)?
     
     // MARK: - Initialization
-    init(userRepository: UserRepositoryProtocol = UserRepository()) {
+    init(userRepository: UserRepositoryProtocol = UserRepository(), isAuthenticated: Bool = true) {
         self.userRepository = userRepository
+        self.isAuthenticated = isAuthenticated
         checkLoginStatus()
     }
     
     // MARK: - Public Methods
     
     func loadUserProfile() {
-        guard isLoggedIn else {
-            onError?("Not logged in")
+        guard isAuthenticated, isLoggedIn else {
+            onProfileDataLoaded?() // callback to update UI for guest mode
             return
         }
         
@@ -104,8 +106,55 @@ class ProfileViewModel {
     // MARK: - Helper Methods
     // Format user name for display
     func getFormattedFullName() -> String {
+        if !isAuthenticated {
+            return "Guest User"
+        }
+        
         let fullName = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespacesAndNewlines)
         return fullName.isEmpty ? "Profile Incomplete" : fullName
+    }
+    
+    // Get display email
+    func getDisplayEmail() -> String {
+        if !isAuthenticated {
+            return "Please login to access all features"
+        }
+        return email
+    }
+    
+    // Check if user can see favorite categories
+    func canAccessFavoriteCategories() -> Bool {
+        return isAuthenticated && isLoggedIn
+    }
+    
+    // Check if user can access theme toggle - available to all users
+    func canAccessThemeToggle() -> Bool {
+        return true
+    }
+    
+    // Check if user can see bookmarks
+    func canAccessBookmarks() -> Bool {
+        return isAuthenticated && isLoggedIn
+    }
+    
+    // Check if user can see read offline
+    func canAccessReadOffline() -> Bool {
+        return isAuthenticated && isLoggedIn
+    }
+    
+    // Check if logout should be shown
+    func shouldShowLogout() -> Bool {
+        return isAuthenticated && isLoggedIn
+    }
+    
+    // Check if delete account should be shown
+    func shouldShowDeleteAccount() -> Bool {
+        return isAuthenticated && isLoggedIn
+    }
+    
+    // Get login button text
+    func getAuthButtonText() -> String {
+        return isAuthenticated && isLoggedIn ? "Logout" : "Login"
     }
     
     // MARK: - Private Methods

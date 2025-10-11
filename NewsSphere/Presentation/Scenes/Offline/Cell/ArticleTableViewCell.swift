@@ -24,10 +24,41 @@ class ArticleTableViewCell: UITableViewCell {
         setupView()
         setupStyle()
         setupConstraints()
+        
+        // Add theme change observer
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(themeChanged),
+            name: ThemeManager.themeChangedNotification,
+            object: nil
+        )
+        
+        // Apply initial theme
+        updateThemeBasedUI()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc private func themeChanged() {
+        updateThemeBasedUI()
+    }
+    
+    private func updateThemeBasedUI() {
+        let isLightMode = ThemeManager.shared.currentTheme.isLight
+        
+        // Update text colors based on theme
+        articleTitle.textColor = isLightMode ? .black : .white
+        indicatorView.backgroundColor = isLightMode ? .lightGray : .darkGray
+        
+        // Keep gray color for time and source
+        timeLabel.textColor = UIColor.hexGrey
+        sourceName.textColor = UIColor.hexGrey
     }
     
     // Configure cell with article data
@@ -42,6 +73,8 @@ class ArticleTableViewCell: UITableViewCell {
         
         timeLabel.text = timeAgo
         sourceName.text = article.sourceName
+        
+        updateThemeBasedUI()
     }
 }
 
@@ -62,7 +95,6 @@ extension ArticleTableViewCell {
         
         articleTitle.font = .systemFont(ofSize: 15, weight: .medium)
         articleTitle.numberOfLines = 0
-        articleTitle.textColor = .white
         
         articleImage.image = UIImage(named: "ic_example")
         articleImage.contentMode = .scaleAspectFill
@@ -71,13 +103,9 @@ extension ArticleTableViewCell {
         
         timeLabel.text = "15h"
         timeLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        timeLabel.textColor = UIColor.hexGrey
         
         sourceName.text = "ABC News"
         sourceName.font = .systemFont(ofSize: 13, weight: .medium)
-        sourceName.textColor = UIColor.hexGrey
-        
-        indicatorView.backgroundColor = .lightGray
     }
     
     private func setupConstraints() {

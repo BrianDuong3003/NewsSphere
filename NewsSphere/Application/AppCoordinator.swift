@@ -13,26 +13,54 @@ class AppCoordinator: Coordinator {
     var window: UIWindow
     var mainCoordinator: MainCoordinator?
     let navigationController = UINavigationController()
+    private var isSplashScreenShown = false
     
     init(window: UIWindow) {
         self.window = window
     }
     
     func start() {
-        window.rootViewController = navigationController
+        // Apply theme before showing any UI
+        applyTheme()
         
+        window.rootViewController = navigationController
+        showSplashScreen()
+        window.makeKeyAndVisible()
+        
+        // Add observer for theme changes
+        ThemeManager.shared.addThemeChangeObserver(self, selector: #selector(themeChanged))
+    }
+    
+    deinit {
+        ThemeManager.shared.removeThemeChangeObserver(self)
+    }
+    
+    @objc private func themeChanged() {
+        applyTheme()
+    }
+    
+    private func applyTheme() {
+        // Apply theme to the entire app
+        ThemeManager.shared.applyTheme()
+    }
+    
+    private func showSplashScreen() {
+        let splashScreenVC = SplashScreenViewController(coordinator: self)
+        navigationController.setViewControllers([splashScreenVC], animated: false)
+        navigationController.setNavigationBarHidden(true, animated: false)
+    }
+    
+    func finishSplashScreen() {
+        isSplashScreenShown = true
         if isUserLoggedIn() {
-            // Check user chooses fav category or not
             if UserDefaults.standard.bool(forKey: "hasSelectedCategories") {
                 showMainFlow()
             } else {
                 showSelectCategories()
             }
         } else {
-            showAuthFlow()
+            showGuestFlow()
         }
-        
-        window.makeKeyAndVisible()
     }
     
     private func isUserLoggedIn() -> Bool {
@@ -56,14 +84,19 @@ class AppCoordinator: Coordinator {
         authCoordinator.start()
     }
     
-    private func showMainFlow() {
+    private func showMainFlow(isAuthenticated: Bool = true) {
         // Clean up any existing coordinators
         childCoordinators.removeAll()
         
-        let coordinator = MainCoordinator(window: window)
+        let coordinator = MainCoordinator(window: window, isAuthenticated: isAuthenticated)
         mainCoordinator = coordinator
         childCoordinators.append(coordinator)
         coordinator.start()
+    }
+    
+    private func showGuestFlow() {
+        // Show main flow with guest mode (unauthenticated)
+        showMainFlow(isAuthenticated: false)
     }
     
     private func showSelectCategories() {
