@@ -18,5 +18,6 @@
 <img width="406" height="851" alt="business" src="https://github.com/user-attachments/assets/8b12307b-ee76-42d7-872d-de054e59b8b0" />
 <img width="401" height="852" alt="profilee" src="https://github.com/user-attachments/assets/e1fb3e86-a86e-4a92-ae57-7f4dcfb9a420" />
 <img width="393" height="852" alt="bookmark" src="https://github.com/user-attachments/assets/75923be7-f65c-4bd1-bbe2-c9c334ea5159" />
+<img width="398" height="857" alt="readoff" src="https://github.com/user-attachments/assets/2fcfa2f6-df45-447d-a18e-371663b1c752" />
 <img width="407" height="854" alt="lightmode" src="https://github.com/user-attachments/assets/2e197715-aa05-451d-ad15-386eb7882c24" />
 <img width="397" height="855" alt="delete" src="https://github.com/user-attachments/assets/b24ad266-34fa-48e0-844a-a3407fc9dac9" />
