@@ -5,6 +5,10 @@
 <img width="396" height="855" alt="guestUser" src="https://github.com/user-attachments/assets/48850a0e-4444-4dab-b8b3-b25cc01c41ee" />
 <img width="396" height="851" alt="Loginn" src="https://github.com/user-attachments/assets/314f786f-9bfb-4c2c-be15-7b2697d7727a" />
 <img width="399" height="852" alt="Registerr" src="https://github.com/user-attachments/assets/26253507-0785-4616-a7d3-ea47e602e500" />
+
+<img width="393" height="849" alt="forgot" src="https://github.com/user-attachments/assets/5eda5d88-413b-416f-84be-e7e1447ae497" />
+<img width="1512" height="553" alt="mail" src="https://github.com/user-attachments/assets/8d77bed5-c498-4b02-9d6e-e3fc9a7b4cbc" />
+
 <img width="398" height="853" alt="Homeee" src="https://github.com/user-attachments/assets/140a669d-f657-4d6a-ba41-ed70fe335c1c" />
 <img width="402" height="850" alt="yournews" src="https://github.com/user-attachments/assets/c59373f3-c6b1-49ab-b4fb-95deef919bac" />
 <img width="397" height="853" alt="education" src="https://github.com/user-attachments/assets/848a9d98-6a4f-422b-87b8-43cd0a079142" />
