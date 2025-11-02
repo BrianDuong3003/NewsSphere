@@ -1,5 +1,4 @@
 
-<img width="2523" height="3567" alt="Frame 1@3x" src="https://github.com/user-attachments/assets/6e774ef9-7b98-49d8-ae37-0cacd35aea08" />
 <img width="390" height="836" alt="splash" src="https://github.com/user-attachments/assets/b3667386-5e2b-4921-a704-0d0be487b6da" />
 <img width="402" height="847" alt="Favcate" src="https://github.com/user-attachments/assets/b0cc2ca3-2635-4d2e-88f1-0ede65dffdd0" />
 <img width="396" height="855" alt="guestUser" src="https://github.com/user-attachments/assets/48850a0e-4444-4dab-b8b3-b25cc01c41ee" />
